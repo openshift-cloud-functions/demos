@@ -1,0 +1,104 @@
+#Install Minishift Knative from https://docs.jboss.org/display/OCF/Knative+Developer+Environment+Setup
+
+#Do once
+# make sure the profile is set correctly
+minishift profile set knative
+# Pinning to the right unreleased version needed in this case v3.11.0
+minishift config set openshift-version v3.11.0
+# memory for the vm
+minishift config set memory 8GB
+# the vCpus for the vm
+minishift config set cpus 4
+# extra disk size for the vm
+minishift config set disk-size 50g
+# caching the images that will be downloaded during app deployments
+minishift config set image-caching true
+# Add new user called admin with password with role cluster-admin
+minishift addons enable admin-user
+# Allow the containers to be run with any uid
+minishift addons enable anyuid
+# Start minishift
+minishift start
+
+#Redo each time
+
+# Enable admission controller webhooks
+# The configuration stanzas below look weird and are just to workaround
+# https://bugzilla.redhat.com/show_bug.cgi?id=1635918
+minishift openshift config set --target=kube --patch '{
+    "admissionConfig": {
+        "pluginConfig": {
+            "ValidatingAdmissionWebhook": {
+                "configuration": {
+                    "apiVersion": "apiserver.config.k8s.io/v1alpha1",
+                    "kind": "WebhookAdmission",
+                    "kubeConfigFile": "/dev/null"
+                }
+            },
+            "MutatingAdmissionWebhook": {
+                "configuration": {
+                    "apiVersion": "apiserver.config.k8s.io/v1alpha1",
+                    "kind": "WebhookAdmission",
+                    "kubeConfigFile": "/dev/null"
+                }
+            }
+        }
+    }
+}'
+ 
+eval $(minishift oc-env)
+until oc login -u admin -p admin; do sleep 5; done;
+ 
+# Setup the project myproject for Knative use
+oc project myproject
+oc adm policy add-scc-to-user privileged -z default
+
+# Addons
+git clone https://github.com/openshift-cloud-functions/minishift-addons.git
+minishift addons install minishift-addons/istio
+minishift addons install minishift-addons/knative
+minishift addons install minishift-addons/knative-eventing #Installs SHA 80860ba
+
+minishift addons apply istio  
+minishift addons apply knative 
+minishift addons apply knative-eventing
+
+# Only for macOS
+sudo route -n add -net $(minishift openshift config view | grep ingressIPNetworkCIDR | awk '{print $NF}') $(minishift ip)
+# Only for Linux
+sudo ip route replace $(minishift openshift config view | grep ingressIPNetworkCIDR | sed 's/\r$//' | awk '{print $NF}') via $(minishift ip)
+  
+# Set the address of the knative gateway
+export IP_ADDRESS=$(oc get svc knative-ingressgateway -n istio-system -o 'jsonpath={.status.loadBalancer.ingress[0].ip}')
+
+#Example
+oc adm policy add-cluster-role-to-user cluster-admin -z default -n myproject
+
+#EventSource, move to myproject
+curl -L https://storage.googleapis.com/knative-releases/eventing/latest/release-source-k8sevents.yaml \
+  | sed 's/namespace: .*/namespace: myproject/' \
+  | oc -n myproject apply -f -
+
+## ADM fu...
+oc adm policy add-scc-to-user anyuid -z feed-sa -n myproject
+oc adm policy add-scc-to-user privileged -z feed-sa -n myproject
+oc adm policy add-scc-to-user anyuid -z default -n myproject
+oc adm policy add-scc-to-user privileged -z default -n myproject
+
+## install demo but change namespace to myproject
+curl -L https://raw.githubusercontent.com/knative/docs/master/eventing/samples/k8s-events/serviceaccount.yaml \
+  | sed 's/namespace: .*/namespace: myproject/' \
+  | oc -n myproject apply -f -
+  
+curl -L https://raw.githubusercontent.com/knative/docs/master/eventing/samples/k8s-events/function.yaml \
+  | sed 's/namespace: .*/namespace: myproject/' \
+  | sed 's/{username}/sjwoodman/' \
+  | oc -n myproject apply -f -
+  
+curl -L https://raw.githubusercontent.com/knative/docs/master/eventing/samples/k8s-events/flow.yaml \
+  | sed 's/namespace: .*/namespace: myproject/' \
+  | oc -n myproject apply -f -
+  
+# Show logs from container that gets the k8s platform events
+oc logs read-k8s-events-00000-deployment-XXXXXX -c user-container
+ 
