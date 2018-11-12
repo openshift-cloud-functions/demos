@@ -86,16 +86,16 @@ oc adm policy add-scc-to-user anyuid -z default -n myproject
 oc adm policy add-scc-to-user privileged -z default -n myproject
 
 ## install demo but change namespace to myproject
-curl -L https://raw.githubusercontent.com/knative/docs/master/eventing/samples/k8s-events/serviceaccount.yaml \
+curl -L https://raw.githubusercontent.com/knative/docs/74ed0fd04aa8474111eff7ac470f9cae9d93882c/eventing/samples/k8s-events/serviceaccount.yaml \
   | sed 's/namespace: .*/namespace: myproject/' \
   | oc -n myproject apply -f -
   
-curl -L https://raw.githubusercontent.com/knative/docs/master/eventing/samples/k8s-events/function.yaml \
+curl -L https://gist.githubusercontent.com/matzew/2dc01770f540fe05d62d39c03822dcc2/raw/8710415c47e0d0695f08d846061124b8d7c64171/function.yaml \
   | sed 's/namespace: .*/namespace: myproject/' \
   | sed 's/{username}/sjwoodman/' \
   | oc -n myproject apply -f -
   
-curl -L https://raw.githubusercontent.com/knative/docs/master/eventing/samples/k8s-events/flow.yaml \
+curl -L https://raw.githubusercontent.com/knative/docs/74ed0fd04aa8474111eff7ac470f9cae9d93882c/eventing/samples/k8s-events/flow.yaml \
   | sed 's/namespace: .*/namespace: myproject/' \
   | oc -n myproject apply -f -
   
