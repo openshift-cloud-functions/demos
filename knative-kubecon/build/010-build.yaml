@@ -1,0 +1,18 @@
+apiVersion: build.knative.dev/v1alpha1
+kind: Build
+metadata:
+  name: oc-build-1
+spec:
+  source:
+    git:
+      url: https://github.com/vdemeester/os-sample-python
+      revision: master
+  template:
+    name: openshift-builds # change that
+    arguments:
+    - name: IMAGE_STREAM
+      value: python:3.6
+    - name: IMAGE
+      value: "helloworld:latest"
+    - name: NAME
+      value: foo-build

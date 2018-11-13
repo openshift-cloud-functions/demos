@@ -1,0 +1,34 @@
+apiVersion: build.knative.dev/v1alpha1
+kind: BuildTemplate
+metadata:
+  name: openshift-builds
+spec:
+  parameters:
+  - name: IMAGE
+    description: The name of the image to push
+  - name: NAME
+    description: Build configuration name
+  - name: IMAGE_STREAM
+    description: The image stream to use as input for the build
+  - name: TO_DOCKER
+    description: Push the image to a Docker repository or not (true by default)
+    default: "false"
+  - name: DIRECTORY
+    description: The directory containing the app
+    default: /workspace
+  - name: OC_BUILDER_IMAGE
+    description: The name of the builder image to use
+    default: docker.io/vdemeester/kobw-builder
+  steps:
+  - name: oc-create-or-update-build
+    image: "${OC_BUILDER_IMAGE}"
+    args: ["create", "--name=${NAME}", "--image=${IMAGE}", "--image-stream=${IMAGE_STREAM}", "--to-docker=${TO_DOCKER}", "."]
+    workingDir: "${DIRECTORY}"
+    env:
+      - name: NAMESPACE
+        valueFrom:
+          fieldRef:
+            fieldPath: metadata.namespace
+  - name: oc-build
+    image: "${OC_BUILDER_IMAGE}"
+    args: ["run", "--name=${NAME}"]
