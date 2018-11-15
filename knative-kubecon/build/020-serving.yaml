@@ -1,7 +1,7 @@
 apiVersion: serving.knative.dev/v1alpha1
 kind: Service
 metadata:
-  name: helloworld-openshift-python
+  name: helloworld-openshift
   namespace: myproject
 spec:
   runLatest:
@@ -9,17 +9,17 @@ spec:
       build:
         source:
           git:
-            url: https://gitlab.com/vdemeester/os-sample-python.git
+            url: https://github.com/openshift-cloud-functions/serving-function
             revision: master
         template:
           name: openshift-builds # change that
           arguments:
           - name: IMAGE_STREAM
-            value: python:3.6
+            value: golang:1.11
           - name: IMAGE
             value: "helloworld:latest"
           - name: NAME
-            value: foo-build
+            value: helloworld-build
       revisionTemplate:
         metadata:
           annotations:
