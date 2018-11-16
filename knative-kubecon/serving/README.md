@@ -8,7 +8,7 @@ After having applied the service from the build demo.
 To access Grafana, open:
 
 ```
-echo "http://$(oc get routes grafana -n istio-system -o jsonpath='{.spec.host}')/d/UbsSZTDik/istio-workload-dashboard?refresh=10s&orgId=1&var-namespace=myproject&var-workload=helloworld-openshift-python-test-00001-deployment&var-srcns=All&var-srcwl=All&var-dstsvc=All"
+echo "http://$(oc get routes grafana -n istio-system -o jsonpath='{.spec.host}')/d/UbsSZTDik/istio-workload-dashboard?refresh=10s&orgId=1&var-namespace=myproject&var-workload=helloworld-openshift-00001-deployment&var-srcns=All&var-srcwl=All&var-dstsvc=All"
 ```
 
 
