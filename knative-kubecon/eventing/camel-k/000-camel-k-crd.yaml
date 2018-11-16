@@ -1,0 +1,71 @@
+apiVersion: v1
+items:
+- apiVersion: apiextensions.k8s.io/v1beta1
+  kind: CustomResourceDefinition
+  metadata:
+    labels:
+      app: camel-k
+    name: integrationplatforms.camel.apache.org
+  spec:
+    group: camel.apache.org
+    names:
+      kind: IntegrationPlatform
+      listKind: IntegrationPlatformList
+      plural: integrationplatforms
+      shortNames:
+      - ip
+      singular: integrationplatform
+    scope: Namespaced
+    version: v1alpha1
+- apiVersion: apiextensions.k8s.io/v1beta1
+  kind: CustomResourceDefinition
+  metadata:
+    labels:
+      app: camel-k
+    name: integrationcontexts.camel.apache.org
+  spec:
+    group: camel.apache.org
+    names:
+      kind: IntegrationContext
+      listKind: IntegrationContextList
+      plural: integrationcontexts
+      shortNames:
+      - ictx
+      singular: integrationcontext
+    scope: Namespaced
+    version: v1alpha1
+- apiVersion: apiextensions.k8s.io/v1beta1
+  kind: CustomResourceDefinition
+  metadata:
+    labels:
+      app: camel-k
+    name: integrations.camel.apache.org
+  spec:
+    group: camel.apache.org
+    names:
+      kind: Integration
+      listKind: IntegrationList
+      plural: integrations
+      shortNames:
+      - it
+      singular: integration
+    scope: Namespaced
+    version: v1alpha1
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: ClusterRole
+  metadata:
+    creationTimestamp: null
+    labels:
+      app: camel-k
+      rbac.authorization.k8s.io/aggregate-to-admin: "true"
+      rbac.authorization.k8s.io/aggregate-to-edit: "true"
+    name: camel-k:edit
+  rules:
+  - apiGroups:
+    - camel.apache.org
+    resources:
+    - '*'
+    verbs:
+    - '*'
+kind: List
+metadata: {}

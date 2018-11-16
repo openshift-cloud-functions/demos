@@ -1,0 +1,26 @@
+apiVersion: camel.apache.org/v1alpha1
+kind: Integration
+metadata:
+  name: slack-integration
+spec:
+  source:
+    name: slack-integration.groovy
+    content: |
+      from('knative:endpoint/default')
+        .unmarshal().json(org.apache.camel.model.dataformat.JsonLibrary.Jackson, Heartbeat.class)
+        .setBody().simple('${body.label}')
+        .log('Received message ${body}: sending it to Slack...')
+        .to('slack:#camel-k-tests')
+
+      class Heartbeat {
+        String label
+        Long id
+      }
+
+      context {
+        components {
+          slack {
+            webhookUrl '<<put-here-the-webhook-url>>'
+          }
+        }
+      }
