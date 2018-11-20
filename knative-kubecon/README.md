@@ -202,7 +202,7 @@ servicemesh, which is listening on `$(minishift ip):32380`). Stringed together w
 command:
 
 ```bash
-curl -H "Host: helloworld-openshift.myproject.example.com" "http://$(minishift ip):32380/health"
+$ curl -H "Host: helloworld-openshift.myproject.example.com" "http://$(minishift ip):32380/health"
 
                     888 888             888
                     888 888             888
