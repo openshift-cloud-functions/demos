@@ -215,3 +215,5 @@ $ curl -H "Host: helloworld-openshift.myproject.example.com" "http://$(minishift
 ```
 
 It's alive!
+
+**To be continued...**
