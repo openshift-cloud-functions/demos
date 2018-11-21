@@ -9,7 +9,7 @@ spec:
       build:
         source:
           git:
-            url: https://github.com/openshift-cloud-functions/serving-function
+            url: https://github.com/openshift-cloud-functions/openshift-knative-application
             revision: master
         template:
           name: openshift-builds # change that
