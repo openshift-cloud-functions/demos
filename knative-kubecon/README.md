@@ -16,8 +16,8 @@ setup scripts are tailored to facilitate that. To setup a fresh minishift cluste
 we need from Knative installed, run the following script:
 
 ```bash
-$ git clone git@github.com:openshift-cloud-functions/knative-operators.git
-$ ./knative-operators/etc/scripts/install.sh
+git clone git@github.com:openshift-cloud-functions/knative-operators.git
+./knative-operators/etc/scripts/install.sh
 ```
 
 > This script is destructive towards the 'knative' profile in minishift.
@@ -26,7 +26,7 @@ After this script exits without any errors, your cluster will be setup and ready
 (OpenShift's CLI) available in the current terminal:
 
 ```bash
-$ eval $(minishift oc-env)
+eval $(minishift oc-env)
 ```
 
 There we are, let's get crackin'.
