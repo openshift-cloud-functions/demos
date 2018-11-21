@@ -230,4 +230,132 @@ $ curl -H "Host: helloworld-openshift.myproject.example.com" "http://$(minishift
 
 It's alive!
 
-**To be continued...**
+## 3. The Eventing Components
+
+The previous steps showed you how to invoke a Knative Serving application from an HTTP request, in that case submitted via curl.
+Knative Eventing is all about how you can invoke those functions in response to other events such as those received from message brokers or external applications.
+In this part of the demo we are going to show how you can receive Kubernetes platform events and route those to a Knative Serving application.
+
+Knative Eventing is built on top of three primitives:
+* Event Sources
+* Channels
+* Subscriptions
+
+_Event Sources_ are the components that receive the external events and forward them onto _Channels_.
+Out of the box we have _Channels_ that are backed by Apache Kafka, GCPPubSub and a simple in-memory channel.
+_Subscriptions_ are used to connect Knative Serving application to a _Channel_ so that it can respond to the events that the channel emits.
+
+Let's take a look at some of those resources in more detail.
+> Mention ServiceAccount?
+
+We have some yaml files prepared which describe the various resources, firstly the channel.
+
+```yaml
+$ less 010-channel.yaml
+apiVersion: eventing.knative.dev/v1alpha1
+kind: Channel
+metadata:
+  name: testchannel
+spec:
+  provisioner:
+    apiVersion: eventing.knative.dev/v1alpha1
+    kind: ClusterChannelProvisioner
+    name: in-memory-channel
+```
+Here we can see that we've got a channel named `testchannel` and it is an `in-memory-channel` which is what we're going to use for this demo - in production we would probably use Apache Kafka.
+Let's deploy that so that we can use it in a later stage.
+
+```bash
+$ oc apply -f 010-channel.yaml -n myproject
+```
+
+Next let's take a look at the _EventSource_.
+
+```yaml
+$ less 020-k8s-event-source.yaml
+apiVersion: sources.eventing.knative.dev/v1alpha1
+kind: KubernetesEventSource
+metadata:
+  name: testevents
+spec:
+  namespace: myproject
+  serviceAccountName: default
+  sink:
+    apiVersion: eventing.knative.dev/v1alpha1
+    kind: Channel
+    name: testchannel
+```
+
+This is starting to get a little bit more interesting.
+This _EventSource_ is of type `KubernetesEventSource`.
+The `KubernetesEventSource` is available as an example _EventSource_ from the Knative project.
+It is going to receive Kubernetes platform events from a particular namespace, in this case `myproject`.
+All of the messages received from Kubernetes are going to be routed to the `sink` that is specified as part of the _EventSource_.
+Here we can see that the `testchannel` we defined earlier is specified as the `sink`.
+
+If we apply that we will see a pod created which is an instance of the `KubernetesEventSource` that is configured with the _Channel_ we defined.
+
+```bash
+$ oc apply -f 020-k8s-event-source.yaml -n myproject
+```
+
+```bash
+$ oc get pods
+NAME                                               READY     STATUS    RESTARTS   AGE
+testevents-dbclc-b6gv8-db66b4985-lqljv             2/2       Running   0          15s
+```
+
+Question: do you want to show the logs here?
+
+The EventSource is up and running and the final piece of the Eventing platform is how we wire everything together.
+This is done via a _Subscription_.
+
+```yaml
+$ less 030-subscription.yaml
+apiVersion: eventing.knative.dev/v1alpha1
+kind: Subscription
+metadata:
+  name: testevents-subscription
+  namespace: myproject
+spec:
+  channel:
+    apiVersion: eventing.knative.dev/v1alpha1
+    kind: Channel
+    name: testchannel
+  subscriber:
+    ref:
+      apiVersion: serving.knative.dev/v1alpha1
+      kind: Service
+      name: helloworld-openshift
+```
+
+This _Subscription_ again references the `testchannel` and also defines a `Subscriber`, in this case the Serving application `helloworld-openshift` we built earlier.
+This basically means that we have subscribed the previously built application to the `testchannel`.
+Once we apply the `Subscription` any Kubernetes platform events from the `myproject` namespace will be routed to the `helloworld-openshift` application.
+Behind the scenes there is a `SubscriptionController` which is doing the wiring for us.
+
+```bash
+$ oc apply -f 030-subscription.yaml -n myproject
+```
+
+If we take a look at the logs of the function we will start to see some messages but may need to generate some load before anything appears.
+
+```bash
+$ oc logs helloworld-openshift-00001-deployment-5f8dbfb49c-txg8j -c user-container
+```
+
+In order to generate some load we will create a new deployment of the `busybox` image.
+
+```bash
+$ kubectl run -i --tty busybox --image=busybox --restart=Never -- sh
+```
+
+If we look at the logs again we will see some Kubernetes platform events appearing which are wrapped in CloudEvents.
+We can see the CloudEvents headers which contain some metadata about the event such as the source of the event, timestamp and Ids.
+In the payload of the message we can see the specific details of the event such as the pod was starting.
+
+> This will depend on the exact messages which show up in the demo.
+
+So, what we've seen here is building a Knative Serving application using Knative Build but backed by the OpenShift build meachanism.
+We've shown how this Serving application can scale up and down from zero.
+Finally we've shown how this application can be wired to an external event source, in this case Kubernetes platform events.
