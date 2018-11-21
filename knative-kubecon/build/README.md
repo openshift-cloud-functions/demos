@@ -1,13 +1,10 @@
 # Example
 
 ```bash
-# Get a working minishift with knative (serving and build at least) on it
+# Get a working minishift with knative on it
 # […]
-# We will need our user to have the correct right
-# FIXME(vdemeester) this rights are too much
-$ oc policy add-role-to-user admin system:serviceaccount:myproject:default
-$ oc import-image -n openshift golang --from=centos/go-toolset-7-centos7 --confirm
-$ oc import-image -n openshift golang:1.11 --from=centos/go-toolset-7-centos7 --confirm
+# Allow default service account to schedule jobs
+$ oc apply -f 000-rolebinding.yaml
 # Create the build template
 $ oc apply -f 000-build-template.yaml
 # Create a build (and validate it work)
@@ -19,16 +16,12 @@ $ oc get buildconfig
 # Clean the build (for now)
 $ oc delete -f 010-build.yaml
 # Create a serving that will depend on a build (creating this one too)
-# update the knative config map to add the internal registry as "safe"
-# to not resolve.
-$ val=$(oc -n knative-serving get cm config-controller -o yaml | yq -r .data.registriesSkippingTagResolving | awk '{print $1",docker-registry.default.svc:5000"}')
-$ oc -n knative-serving get cm config-controller -oyaml | yq w - data.registriesSkippingTagResolving $val | oc apply -f - 
 $ oc apply -f 020-serving.yaml
 # […]
 $ oc get pods
 # […] builds and pod should be created and running, …
 # Once the build is done and service running
-$ curl -H "Host: helloworld-openshift.myproject.example.com" http://$(minishift ip):32380
+$ curl -H "Host: helloworld-openshift.myproject.example.com" "http://$(minishift ip):32380"
 GET / HTTP/1.1
 Host: helloworld-openshift.myproject.example.com
 Accept: */*
@@ -42,4 +35,14 @@ X-Envoy-Internal: true
 X-Forwarded-For: 172.17.0.1, 127.0.0.1
 X-Forwarded-Proto: http
 X-Request-Id: 9279c0f6-dd3c-986a-a17c-834db6b67d38
+$ curl -H "Host: helloworld-openshift.myproject.example.com" "http://$(minishift ip):32380/health"
+
+                    888 888             888
+                    888 888             888
+                    888 888             888
+888d888 .d88b.  .d88888 88888b.  8888b. 888888
+888P"  d8P  Y8bd88" 888 888 "88b    "88b888
+888    88888888888  888 888  888.d888888888
+888    Y8b.    Y88b 888 888  888888  888Y88b.
+888     "Y8888  "Y88888 888  888"Y888888 "Y888
 ```
