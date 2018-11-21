@@ -77,7 +77,7 @@ spec:
     default: /workspace
   - name: OC_BUILDER_IMAGE
     description: The name of the builder image to use
-    default: docker.io/vdemeester/kobw-builder:0.0.1
+    default: docker.io/vdemeester/kobw-builder:0.1.0
   steps:
   - name: kobw-create-or-update
     image: "${OC_BUILDER_IMAGE}"
@@ -116,7 +116,7 @@ metadata:
 spec:
   source:
     git:
-      url: https://github.com/openshift-cloud-functions/serving-function
+      url: https://github.com/openshift-cloud-functions/openshift-knative-application
       revision: master
   template:
     name: openshift-builds
@@ -157,10 +157,10 @@ spec:
       build:
         source:
           git:
-            url: https://github.com/openshift-cloud-functions/serving-function
+            url: https://github.com/openshift-cloud-functions/openshift-knative-application
             revision: master
         template:
-          name: openshift-builds # change that
+          name: openshift-builds
           arguments:
           - name: IMAGE_STREAM
             value: golang:1.11
