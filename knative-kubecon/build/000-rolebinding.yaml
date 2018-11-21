@@ -1,0 +1,85 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: imagestream-manager
+rules:
+- apiGroups:
+  - "image.openshift.io"
+  resources:
+  - imagestreams
+  verbs:
+  - create
+  - update
+  - get
+  - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: buildconfig-manager
+rules:
+- apiGroups:
+  - "build.openshift.io"
+  resources:
+  - buildconfigs
+  - buildconfigs/instantiate
+  verbs:
+  - create
+  - update
+  - get
+  - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: build-manager
+rules:
+- apiGroups:
+  - "build.openshift.io"
+  resources:
+  - builds
+  verbs:
+  - create
+  - update
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kobw-images
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: imagestream-manager
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: myproject
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kobw-buildconfig
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: buildconfig-manager
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: myproject
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kobw-build
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: build-manager
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: myproject
