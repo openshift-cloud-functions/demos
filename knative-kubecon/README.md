@@ -242,9 +242,9 @@ Knative Eventing is built on top of three primitives:
 * Channels
 * Subscriptions
 
-*Event Sources* are the components that receive the external events and forward them onto *Sinks* which can be a *Channel*.
+**Event Sources** are the components that receive the external events and forward them onto **Sinks** which can be a **Channel**.
 Out of the box we have Channels that are backed by Apache Kafka, GCPPubSub and a simple in-memory channel.
-*Subscriptions* are used to connect Knative Serving application to a Channel so that it can respond to the events that the channel emits.
+**Subscriptions** are used to connect Knative Serving application to a Channel so that it can respond to the events that the channel emits.
 
 Let's take a look at some of those resources in more detail.
 
@@ -337,12 +337,14 @@ oc apply -f eventing/030-subscription.yaml -n myproject
 
 It may take a few seconds for the application pod to become ready.
 If we take a look at the logs of the application we may start to see some messages.
+Those represent the Kubernetes events flowing into our application.
 
 ```bash
 oc logs helloworld-openshift-00001-deployment-5f8dbfb49c-txg8j -c user-container
 ```
 
-Alternatively, we can generate some Kubernetes events by creating a pod that when starting will generate events such as `pod created` and `container started`. We will create a new deployment of the `busybox` image to show this.
+If there are no events present, we can generate some Kubernetes events by creating a pod that when starting will generate events such as `pod created` and `container started`.
+We will create a new pod using the `busybox` image to show this.
 
 ```bash
 kubectl run -i --tty busybox --image=busybox --restart=Never -- sh
@@ -355,5 +357,5 @@ In the payload of the message we can see the specific details of the event such 
 > This will depend on the exact messages which show up in the demo.
 
 So, what we've seen here is building a Knative Serving application using Knative Build but backed by the OpenShift build mechanism.
-We've shown how this Serving application can be respond to an HTTP request.
+We've shown how this Serving application can respond to an HTTP request.
 Finally we've shown how this application can be wired to an external event source, in this case Kubernetes platform events.
