@@ -31,6 +31,19 @@ $ eval $(minishift oc-env)
 
 There we are, let's get crackin'.
 
+### Setting up access rights
+
+To be able to access everything we need for the demo, we'll need to add certain rights to the `default` ServiceAccount
+in our namespace. For the Build part it needs CRUD access to all OpenShift Build related entities (Build, BuildConfig,
+ImageStream) and for the Eventing part, the ServiceAccount needs to be able to get events in the namespace.
+
+To set those up, run:
+
+```bash
+oc apply -f build/000-rolebinding.yaml
+oc apply -f eventing/000-rolebinding.yaml
+```
+
 ## 1. The Build component
 
 The Build component in Knative is not so much a utility to build images themselves. It rather provides primitives,
@@ -89,10 +102,11 @@ To achieve the desired effect, this template wraps an OpenShift Build entity to 
 To "install" that template, we need to `oc apply` it by:
 
 ```bash
-$ oc apply -f build/000-build-template.yaml
+oc apply -f build/000-build-template.yaml
 ```
 
-A **Build**, as seen below, then references such a BuildTemplate and provides it with the arguments needed to perform the build.
+This on its own will do nothing. It only defines a template for a build to reference. A **Build**, as seen below, then includes 
+such a references and provides it with the arguments needed to perform the build.
 
 ```yaml
 apiVersion: build.knative.dev/v1alpha1
@@ -181,7 +195,7 @@ from the OpenShift internal registry.
 We create the KService by, you guessed it, applying the file through `oc`:
 
 ```bash
-$ oc apply -f build/020-serving.yaml
+oc apply -f build/020-serving.yaml
 ```
 
 Now the build starts running (show in Console, link TODO) and once it finishes (Wait for finish) Knative
