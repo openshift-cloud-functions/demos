@@ -21,8 +21,7 @@ $ oc delete -f 010-build.yaml
 # Create a serving that will depend on a build (creating this one too)
 # update the knative config map to add the internal registry as "safe"
 # to not resolve.
-$ val=$(oc -n knative-serving get cm config-controller -o yaml | yq -r .data.registriesSkippingTagResolving | awk '{print $1",docker-registry.default.svc:5000"}')
-$ oc -n knative-serving get cm config-controller -oyaml | yq w - data.registriesSkippingTagResolving $val | oc apply -f - 
+$ oc -n knative-serving get cm config-controller -ojson | jq '.data.registriesSkippingTagResolving += ",docker-registry.default.svc:5000"' | oc apply -f -
 $ oc apply -f 020-serving.yaml
 # […]
 $ oc get pods
