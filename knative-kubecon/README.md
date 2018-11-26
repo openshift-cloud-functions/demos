@@ -386,7 +386,7 @@ We can also visualize what's exactly happening using Kiali.
 
 ```bash
 # Open in your browser (default credentials: admin/admin)
-echo https://$(oc get routes kiali -n istio-system -o jsonpath='{.spec.host}')/console/service-graph/myproject?layout=cose-bilkent&duration=60&edges=requestsPercentOfTotal&graphType=app"
+echo "https://$(oc get routes kiali -n istio-system -o jsonpath='{.spec.host}')/console/service-graph/myproject?layout=cose-bilkent&duration=60&edges=requestsPercentOfTotal&graphType=app"
 ```
 
 ![Kiali UI to visualize how the app is structured.](images/kiali.png)
