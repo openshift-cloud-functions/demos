@@ -199,9 +199,35 @@ We create the KService by, you guessed it, applying the file through `oc`:
 oc apply -f build/020-serving.yaml
 ```
 
-Now the build starts running (show in Console, link TODO) and once it finishes (Wait for finish) Knative
-will produce a plain Kubernetes deployment that contains the container we specified in the RevisionSpec
-above. (Show pods in Console, link TODO)
+Now the build will eventually start running. You can see through the OpenShift console, how a job is created
+that orchestrates the build.
+
+```bash
+# Open in your browser
+echo "https://$(minishift ip):8443/console/project/myproject/browse/pods"
+```
+
+![OpenShift Console's Pods page shown pods being created for the build](images/pods.png)
+
+Eventually, an OpenShift Build is created and builds the image, as can be seen
+on the Builds page.
+
+```bash
+# Open in your browser
+echo "https://$(minishift ip):8443/console/project/myproject/browse/builds"
+```
+
+![OpenShift Console's Pods page shown pods being created for the build](images/builds.png)
+
+Once the build finishes Knative will produce a plain Kubernetes deployment that contains the container we specified 
+in the RevisionSpec above.
+
+```bash
+# Open in your browser
+echo "https://$(minishift ip):8443/console/project/myproject/browse/deployments"
+```
+
+![OpenShift Console's Pods page shown pods being created for the build](images/deployments.png)
 
 Now, to see that the service is actually running, we're going to send a request against it. To do so,
 we'll get the domain of the KService:
