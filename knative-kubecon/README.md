@@ -257,7 +257,7 @@ $ curl -H "Host: helloworld-openshift.myproject.example.com" "http://$(minishift
 
 It's alive!
 
-## 3. The Eventing Component
+## 3. The Eventing component
 
 The previous steps showed you how to invoke a KService from an HTTP request, in that case submitted via curl.
 Knative Eventing is all about how you can invoke those applications in response to other events such as those received from message brokers or external applications.
