@@ -373,7 +373,7 @@ If there are no events present, we can generate some Kubernetes events by creati
 We will create a new pod using the `busybox` image to show this.
 
 ```bash
-kubectl run -i --tty busybox --image=busybox --restart=Never -- sh
+kubectl run -i --tty busybox --image=busybox --restart=Never --rm=true -- sh
 ```
 
 If we look at the logs again we will see some Kubernetes platform events appearing which are wrapped in CloudEvents.
