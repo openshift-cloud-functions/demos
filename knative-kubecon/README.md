@@ -380,7 +380,7 @@ If we look at the logs again we will see some Kubernetes platform events appeari
 We can see the CloudEvents headers which contain some metadata about the event such as the source of the event, timestamp and Ids.
 In the payload of the message we can see the specific details of the event such as the pod was starting.
 
-> This will depend on the exact messages which show up in the demo.
+> TODO: This will depend on the exact messages which show up in the demo.
 
 We can also visualize what's exactly happening using Kiali.
 
