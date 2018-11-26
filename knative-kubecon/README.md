@@ -203,7 +203,7 @@ Now the build will eventually start running. You can see through the OpenShift c
 that orchestrates the build.
 
 ```bash
-# Open in your browser
+# Open in your browser (default credentials: admin/admin)
 echo "https://$(minishift ip):8443/console/project/myproject/browse/pods"
 ```
 
@@ -213,7 +213,7 @@ Eventually, an OpenShift Build is created and builds the image, as can be seen
 on the Builds page.
 
 ```bash
-# Open in your browser
+# Open in your browser (default credentials: admin/admin)
 echo "https://$(minishift ip):8443/console/project/myproject/browse/builds"
 ```
 
@@ -223,7 +223,7 @@ Once the build finishes Knative will produce a plain Kubernetes deployment that 
 in the RevisionSpec above.
 
 ```bash
-# Open in your browser
+# Open in your browser (default credentials: admin/admin)
 echo "https://$(minishift ip):8443/console/project/myproject/browse/deployments"
 ```
 
@@ -385,7 +385,7 @@ In the payload of the message we can see the specific details of the event such 
 We can also visualize what's exactly happening using Kiali.
 
 ```bash
-# Open in your browser
+# Open in your browser (default credentials: admin/admin)
 echo https://$(oc get routes kiali -n istio-system -o jsonpath='{.spec.host}')/console/service-graph/myproject?layout=cose-bilkent&duration=60&edges=requestsPercentOfTotal&graphType=app"
 ```
 
