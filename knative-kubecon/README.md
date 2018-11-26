@@ -207,7 +207,7 @@ that orchestrates the build.
 echo "https://$(minishift ip):8443/console/project/myproject/browse/pods"
 ```
 
-![OpenShift Console's Pods page shown pods being created for the build](images/pods.png)
+![OpenShift Console's Pods page shown pods being created for the build.](images/pods.png)
 
 Eventually, an OpenShift Build is created and builds the image, as can be seen
 on the Builds page.
@@ -217,7 +217,7 @@ on the Builds page.
 echo "https://$(minishift ip):8443/console/project/myproject/browse/builds"
 ```
 
-![OpenShift Console's Pods page shown pods being created for the build](images/builds.png)
+![OpenShift Console's Builds page showing the created builds.](images/builds.png)
 
 Once the build finishes Knative will produce a plain Kubernetes deployment that contains the container we specified 
 in the RevisionSpec above.
@@ -227,7 +227,7 @@ in the RevisionSpec above.
 echo "https://$(minishift ip):8443/console/project/myproject/browse/deployments"
 ```
 
-![OpenShift Console's Pods page shown pods being created for the build](images/deployments.png)
+![OpenShift Console's Deployments page showning the created deployment with 1 replica.](images/deployments.png)
 
 Now, to see that the service is actually running, we're going to send a request against it. To do so,
 we'll get the domain of the KService:
@@ -381,6 +381,25 @@ We can see the CloudEvents headers which contain some metadata about the event s
 In the payload of the message we can see the specific details of the event such as the pod was starting.
 
 > This will depend on the exact messages which show up in the demo.
+
+We can also visualize what's exactly happening using Kiali.
+
+```bash
+# Open in your browser
+echo https://$(oc get routes kiali -n istio-system -o jsonpath='{.spec.host}')/console/service-graph/myproject?layout=cose-bilkent&duration=60&edges=requestsPercentOfTotal&graphType=app"
+```
+
+![Kiali UI to visualize how the app is structured.](images/kiali.png)
+
+The graph visualizes how the app we've deployed, which is represented by the deployment *helloworld-openshift-00001* in this screenshot,
+is connected with various components of Knative. Events can flow in either via the *knative-ingressgateway* (essentially: from anywhere)
+and the *in-memory-channel-dispatcher*, which we've deployed earlier to be able to receive events. That channel gets its events via
+the *testevents* pod we've created earlier, which is the Source listening on Kubernetes Events.
+
+We can also roughly spot how the Knative Serving system works underneath, as our deployment gets requests from the activator and is connected
+to the autoscaler, to provide metrics there.
+
+## Conclusion
 
 So, what we've seen here is building a Knative Serving application using Knative Build but backed by the OpenShift build mechanism.
 We've shown how this Serving application can respond to an HTTP request.
