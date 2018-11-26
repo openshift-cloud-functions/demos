@@ -291,7 +291,7 @@ Here we can see that we've got a channel named `testchannel` and it is an `in-me
 Let's deploy that so that we can use it in a later stage.
 
 ```bash
-oc apply -f eventing/010-channel.yaml -n myproject
+oc apply -f eventing/010-channel.yaml
 ```
 
 Next let's take a look at the EventSource.
@@ -320,7 +320,7 @@ Here we can see that the `testchannel` we defined earlier is specified as the `s
 If we apply that we will see a pod created which is an instance of the `KubernetesEventSource` that is configured with the Channel we defined.
 
 ```bash
-oc apply -f eventing/020-k8s-event-source.yaml -n myproject
+oc apply -f eventing/020-k8s-event-source.yaml
 ```
 
 ```bash
@@ -358,7 +358,7 @@ Once we apply the `Subscription` any Kubernetes platform events from the `myproj
 Behind the scenes there is a `SubscriptionController` which is doing the wiring for us.
 
 ```bash
-oc apply -f eventing/030-subscription.yaml -n myproject
+oc apply -f eventing/030-subscription.yaml
 ```
 
 It may take a few seconds for the application pod to become ready.
