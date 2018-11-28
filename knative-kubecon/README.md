@@ -7,7 +7,8 @@ offer:
 Build mechanic underneath).
 2. The built image is then deployed as a Knative Service, which means it scales automatically, even down
 to nothing as we'll see.
-3. We wire an EventSource emitting Kubernetes events to our application through Knative's Eventing capabilities.
+3. We wire an EventSource emitting IoT events from the Newcastle University to our application through 
+Knative's Eventing capabilities.
 
 ## 0. Setting up an OpenShift cluster
 
@@ -174,13 +175,10 @@ spec:
           annotations:
             alpha.image.policy.openshift.io/resolve-names: "*"
         spec:
-          containerConcurrency: 1
+          containerConcurrency: 3
           container:
             imagePullPolicy: Always
             image: docker-registry.default.svc:5000/myproject/helloworld:latest
-            env:
-            - name: BAR
-              value: "bar"
 ```
 
 It's very apparent that the `spec.runLatest.configuration.build` part is a one-to-one copy of the Build
@@ -298,38 +296,42 @@ Next let's take a look at the EventSource.
 
 ```yaml
 apiVersion: sources.eventing.knative.dev/v1alpha1
-kind: KubernetesEventSource
+kind: ContainerSource
 metadata:
-  name: testevents
+  name: urbanobservatory-event-source
 spec:
-  namespace: myproject
-  serviceAccountName: default
+  image: docker.io/markusthoemmes/cmd-2088fd4374e4d081c84f97e68d452fac
+  args:
+    - '--source=wss://api.usb.urbanobservatory.ac.uk/stream'
   sink:
     apiVersion: eventing.knative.dev/v1alpha1
     kind: Channel
     name: testchannel
 ```
 
-This is starting to get a little bit more interesting.
-This EventSource is of type `KubernetesEventSource`.
-The `KubernetesEventSource` is available as an example EventSource from the Knative project.
-It is going to receive Kubernetes platform events from a particular namespace, in this case `myproject`.
-All of the messages received from Kubernetes are going to be routed to the `sink` that is specified as part of the EventSource.
-Here we can see that the `testchannel` we defined earlier is specified as the `sink`.
+This is starting to get a little bit more interesting. This EventSource is a so called `ContainerSource`. As such, it runs a container
+based off the image given and instructs it to send its event to the sink described in the YAML. In this case, this container happens
+to be a Websocket connector and we want all events coming from the specified Websocket server to be forwarded to the given sink. That
+sink is the channel that we created before in this case.
 
-If we apply that we will see a pod created which is an instance of the `KubernetesEventSource` that is configured with the Channel we defined.
+This source in particular will emit IoT events from the buildings of the University of Newcastle, how cool is that? We'll allow it to
+actually reach the defined host by setting up matching egress policies:
 
 ```bash
-oc apply -f eventing/020-k8s-event-source.yaml
+oc apply -f eventing/020-egress.yaml
+```
+
+If we now apply our source YAML, we will see a pod created which is an instance of the source we defined above.
+
+```bash
+oc apply -f eventing/021-source.yaml
 ```
 
 ```bash
 $ oc get pods
-NAME                                               READY     STATUS    RESTARTS   AGE
-testevents-dbclc-b6gv8-db66b4985-lqljv             2/2       Running   0          15s
+NAME                                                   READY     STATUS      RESTARTS   AGE
+urbanobservatory-event-source-gmwmt-68c44cfcc7-jqprt   2/2       Running     1          5m
 ```
-
-Question: do you want to show the logs here?
 
 The EventSource is up and running and the final piece of the Knative Eventing is how we wire everything together.
 This is done via a Subscription.
@@ -361,26 +363,12 @@ Behind the scenes there is a `SubscriptionController` which is doing the wiring 
 oc apply -f eventing/030-subscription.yaml
 ```
 
-It may take a few seconds for the application pod to become ready.
-If we take a look at the logs of the application we may start to see some messages.
-Those represent the Kubernetes events flowing into our application.
+And by that, events coming through our source are now dispatched via a channel to the service that we created in the beginning of this tutorial. We can actually see
+the events by having a look at the logs of our application.
 
 ```bash
 oc logs helloworld-openshift-00001-deployment-5f8dbfb49c-txg8j -c user-container
 ```
-
-If there are no events present, we can generate some Kubernetes events by creating a pod that when starting will generate events such as `pod created` and `container started`.
-We will create a new pod using the `busybox` image to show this.
-
-```bash
-kubectl run -i --tty busybox --image=busybox --restart=Never --rm=true -- sh
-```
-
-If we look at the logs again we will see some Kubernetes platform events appearing which are wrapped in CloudEvents.
-We can see the CloudEvents headers which contain some metadata about the event such as the source of the event, timestamp and Ids.
-In the payload of the message we can see the specific details of the event such as the pod was starting.
-
-> TODO: This will depend on the exact messages which show up in the demo.
 
 We can also visualize what's exactly happening using Kiali.
 
@@ -398,6 +386,21 @@ the *testevents* pod we've created earlier, which is the Source listening on Kub
 
 We can also roughly spot how the Knative Serving system works underneath, as our deployment gets requests from the activator and is connected
 to the autoscaler, to provide metrics there.
+
+## 4. Scaling up and down
+
+Since the buildings of the University of Newcastle are generating a vast and steady stream of information, Knative will actually scale the application that we've deployed
+to fit the incoming volume dynamically. We should meanwhile have a couple of pods around.
+
+Now, the serverless promise is to alyway only need what is necessary to serve the traffic to our application. That means, if there is no traffic our application should
+have zero pods. We can simulate that by removing the subscription of the channel to our application:
+
+```bash
+oc delete -f eventing/030-subscription.yaml
+```
+
+Now we wait a couple of minutes and we'll see the pods slowly disappearing until they even disappear completely. Reinstanatiating the subscription as shown above
+will bring them back in numbers to serve the traffic of course.
 
 ## Conclusion
 
