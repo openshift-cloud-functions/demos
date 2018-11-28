@@ -199,9 +199,35 @@ We create the KService by, you guessed it, applying the file through `oc`:
 oc apply -f serving/010-service.yaml
 ```
 
-Now the build starts running (show in Console, link TODO) and once it finishes (Wait for finish) Knative
-will produce a plain Kubernetes deployment that contains the container we specified in the RevisionSpec
-above. (Show pods in Console, link TODO)
+Now the build will eventually start running. You can see through the OpenShift console, how a job is created
+that orchestrates the build.
+
+```bash
+# Open in your browser (default credentials: admin/admin)
+echo "https://$(minishift ip):8443/console/project/myproject/browse/pods"
+```
+
+![OpenShift Console's Pods page shown pods being created for the build.](images/pods.png)
+
+Eventually, an OpenShift Build is created and builds the image, as can be seen
+on the Builds page.
+
+```bash
+# Open in your browser (default credentials: admin/admin)
+echo "https://$(minishift ip):8443/console/project/myproject/browse/builds"
+```
+
+![OpenShift Console's Builds page showing the created builds.](images/builds.png)
+
+Once the build finishes Knative will produce a plain Kubernetes deployment that contains the container we specified 
+in the RevisionSpec above.
+
+```bash
+# Open in your browser (default credentials: admin/admin)
+echo "https://$(minishift ip):8443/console/project/myproject/browse/deployments"
+```
+
+![OpenShift Console's Deployments page showning the created deployment with 1 replica.](images/deployments.png)
 
 Now, to see that the service is actually running, we're going to send a request against it. To do so,
 we'll get the domain of the KService:
@@ -231,7 +257,7 @@ $ curl -H "Host: helloworld-openshift.myproject.example.com" "http://$(minishift
 
 It's alive!
 
-## 3. The Eventing Component
+## 3. The Eventing component
 
 The previous steps showed you how to invoke a KService from an HTTP request, in that case submitted via curl.
 Knative Eventing is all about how you can invoke those applications in response to other events such as those received from message brokers or external applications.
@@ -265,7 +291,7 @@ Here we can see that we've got a channel named `testchannel` and it is an `in-me
 Let's deploy that so that we can use it in a later stage.
 
 ```bash
-oc apply -f eventing/010-channel.yaml -n myproject
+oc apply -f eventing/010-channel.yaml
 ```
 
 Next let's take a look at the EventSource.
@@ -294,7 +320,7 @@ Here we can see that the `testchannel` we defined earlier is specified as the `s
 If we apply that we will see a pod created which is an instance of the `KubernetesEventSource` that is configured with the Channel we defined.
 
 ```bash
-oc apply -f eventing/020-k8s-event-source.yaml -n myproject
+oc apply -f eventing/020-k8s-event-source.yaml
 ```
 
 ```bash
@@ -332,7 +358,7 @@ Once we apply the `Subscription` any Kubernetes platform events from the `myproj
 Behind the scenes there is a `SubscriptionController` which is doing the wiring for us.
 
 ```bash
-oc apply -f eventing/030-subscription.yaml -n myproject
+oc apply -f eventing/030-subscription.yaml
 ```
 
 It may take a few seconds for the application pod to become ready.
@@ -347,14 +373,33 @@ If there are no events present, we can generate some Kubernetes events by creati
 We will create a new pod using the `busybox` image to show this.
 
 ```bash
-kubectl run -i --tty busybox --image=busybox --restart=Never -- sh
+kubectl run -i --tty busybox --image=busybox --restart=Never --rm=true -- sh
 ```
 
 If we look at the logs again we will see some Kubernetes platform events appearing which are wrapped in CloudEvents.
 We can see the CloudEvents headers which contain some metadata about the event such as the source of the event, timestamp and Ids.
 In the payload of the message we can see the specific details of the event such as the pod was starting.
 
-> This will depend on the exact messages which show up in the demo.
+> TODO: This will depend on the exact messages which show up in the demo.
+
+We can also visualize what's exactly happening using Kiali.
+
+```bash
+# Open in your browser (default credentials: admin/admin)
+echo "https://$(oc get routes kiali -n istio-system -o jsonpath='{.spec.host}')/console/service-graph/myproject?layout=cose-bilkent&duration=60&edges=requestsPercentOfTotal&graphType=app"
+```
+
+![Kiali UI to visualize how the app is structured.](images/kiali.png)
+
+The graph visualizes how the app we've deployed, which is represented by the deployment *helloworld-openshift-00001* in this screenshot,
+is connected with various components of Knative. Events can flow in either via the *knative-ingressgateway* (essentially: from anywhere)
+and the *in-memory-channel-dispatcher*, which we've deployed earlier to be able to receive events. That channel gets its events via
+the *testevents* pod we've created earlier, which is the Source listening on Kubernetes Events.
+
+We can also roughly spot how the Knative Serving system works underneath, as our deployment gets requests from the activator and is connected
+to the autoscaler, to provide metrics there.
+
+## Conclusion
 
 So, what we've seen here is building a Knative Serving application using Knative Build but backed by the OpenShift build mechanism.
 We've shown how this Serving application can respond to an HTTP request.
