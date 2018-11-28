@@ -103,7 +103,7 @@ To achieve the desired effect, this template wraps an OpenShift Build entity to 
 To "install" that template, we need to `oc apply` it by:
 
 ```bash
-oc apply -f build/000-build-template.yaml
+oc apply -f build/010-build-template.yaml
 ```
 
 This on its own will do nothing. It only defines a template for a build to reference. A **Build**, as seen below, then includes
@@ -134,7 +134,7 @@ In this particular case, the source code is taken from a git repository's master
 that we want to build a Golang based application and want to name the image `helloworld:latest`.
 
 Now we could go ahead and run this build on its own by applying it like the template above and using
-`oc apply -f build/010-build.yaml`, but it's much more interesting to see how it's stringed together
+`oc apply -f build/020-build.yaml`, but it's much more interesting to see how it's stringed together
 with creating a deployment in the same step. After all, an image on it's own is worth nothing if its
 not deployed.
 
@@ -196,7 +196,7 @@ from the OpenShift internal registry.
 We create the KService by, you guessed it, applying the file through `oc`:
 
 ```bash
-oc apply -f build/020-serving.yaml
+oc apply -f serving/010-service.yaml
 ```
 
 Now the build starts running (show in Console, link TODO) and once it finishes (Wait for finish) Knative
