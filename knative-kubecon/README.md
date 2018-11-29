@@ -328,10 +328,11 @@ oc apply -f eventing/021-source.yaml
 ```
 
 ```bash
-$ oc get pods
-NAME                                                   READY     STATUS      RESTARTS   AGE
-urbanobservatory-event-source-gmwmt-68c44cfcc7-jqprt   2/2       Running     1          5m
+# Open in your browser (default credentials: admin/admin)
+echo "https://$(minishift ip):8443/console/project/myproject/browse/deployments"
 ```
+
+![OpenShift Console's Deployments page showning the created deployment for the source.](images/source.png)
 
 The EventSource is up and running and the final piece of the Knative Eventing is how we wire everything together.
 This is done via a Subscription.
@@ -392,6 +393,13 @@ to the autoscaler, to provide metrics there.
 Since the buildings of the University of Newcastle are generating a vast and steady stream of information, Knative will actually scale the application that we've deployed
 to fit the incoming volume dynamically. We should meanwhile have a couple of pods around.
 
+```bash
+# Open in your browser (default credentials: admin/admin)
+echo "https://$(minishift ip):8443/console/project/myproject/browse/deployments"
+```
+
+![OpenShift Console's Deployments page showning the created deployment scaled to 3.](images/scaleup.png)
+
 Now, the serverless promise is to alyway only need what is necessary to serve the traffic to our application. That means, if there is no traffic our application should
 have zero pods. We can simulate that by removing the subscription of the channel to our application:
 
@@ -401,6 +409,14 @@ oc delete -f eventing/030-subscription.yaml
 
 Now we wait a couple of minutes and we'll see the pods slowly disappearing until they even disappear completely. Reinstanatiating the subscription as shown above
 will bring them back in numbers to serve the traffic of course.
+
+```bash
+# Open in your browser (default credentials: admin/admin)
+echo "https://$(minishift ip):8443/console/project/myproject/browse/deployments"
+```
+
+![OpenShift Console's Deployments page showning the created deployment scaled to 0.](images/scale0.png)
+
 
 ## Conclusion
 
