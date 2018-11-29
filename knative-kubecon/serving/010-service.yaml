@@ -25,10 +25,7 @@ spec:
           annotations:
             alpha.image.policy.openshift.io/resolve-names: "*"
         spec:
-          containerConcurrency: 1
+          containerConcurrency: 3
           container:
             imagePullPolicy: Always
             image: docker-registry.default.svc:5000/myproject/helloworld:latest
-            env:
-            - name: BAR
-              value: "bar"
