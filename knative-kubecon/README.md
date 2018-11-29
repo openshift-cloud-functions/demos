@@ -300,8 +300,8 @@ kind: ContainerSource
 metadata:
   name: urbanobservatory-event-source
 spec:
-  image: docker.io/markusthoemmes/cmd-2088fd4374e4d081c84f97e68d452fac
-  args:
+  image: docker.io/markusthoemmes/knative-websocket-eventsource
+  args: 
     - '--source=wss://api.usb.urbanobservatory.ac.uk/stream'
   sink:
     apiVersion: eventing.knative.dev/v1alpha1
@@ -420,6 +420,8 @@ echo "https://$(minishift ip):8443/console/project/myproject/browse/deployments"
 
 ## Conclusion
 
-So, what we've seen here is building a Knative Serving application using Knative Build but backed by the OpenShift build mechanism.
-We've shown how this Serving application can respond to an HTTP request.
-Finally we've shown how this application can be wired to an external event source, in this case Kubernetes platform events.
+With that we've successfully touched many aspects of what Knative has to offer today. We've built a Knative application
+from scratch, making use of OpenShifts existing rich Build support. We've further seen how to hook that application up with
+an arbitrary event source, to feed that data to our application in a declarative fashion. Lastly, we've seen how Knative
+scaled our application according to the needs of incoming traffic and even scaled the application down to zero instances,
+when no traffic was coming in at all.
