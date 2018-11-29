@@ -37,13 +37,12 @@ There we are, let's get crackin'.
 
 To be able to access everything we need for the demo, we'll need to add certain rights to the `default` ServiceAccount
 in our namespace. For the Build part it needs CRUD access to all OpenShift Build related entities (Build, BuildConfig,
-ImageStream) and for the Eventing part, the ServiceAccount needs to be able to get events in the namespace.
+ImageStream).
 
 To set those up, run:
 
 ```bash
 oc apply -f build/000-rolebinding.yaml
-oc apply -f eventing/000-rolebinding.yaml
 ```
 
 ## 1. The Build component
