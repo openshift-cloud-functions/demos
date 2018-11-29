@@ -4,13 +4,15 @@ metadata:
   name: helloworld-openshift
   namespace: myproject
 spec:
-  runLatest:
+  release:
+    revisions: ["helloworld-openshift-00001", "helloworld-openshift-00002"]
+    rolloutPercent: 50
     configuration:
       build:
         source:
           git:
             url: https://github.com/markusthoemmes/ocf-serving-function
-            revision: v1
+            revision: v2
         template:
           name: openshift-builds # change that
           arguments:
