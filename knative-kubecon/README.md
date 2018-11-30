@@ -80,7 +80,7 @@ spec:
     default: /workspace
   - name: OC_BUILDER_IMAGE
     description: The name of the builder image to use
-    default: docker.io/vdemeester/kobw-builder:0.1.0
+    default: docker.io/vdemeester/kobw-builder:0.1.1
   steps:
   - name: kobw-create-or-update
     image: "${OC_BUILDER_IMAGE}"
