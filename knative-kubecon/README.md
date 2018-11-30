@@ -419,8 +419,9 @@ That can be achieved through the following changes to the service definition:
 >             revision: v2
 ```
 
-This tells the Knative system to release from `helloworld-openshift-00001` to `helloworld-openshift-00002` (the number is strictly increasing) and for
-now we want a rollout ratio of 0 because our new version still needs to be built etc. Apply these changes via:
+This tells the Knative system to release from `helloworld-openshift-00001` (the current revision) to `helloworld-openshift-00002` (the canary
+revision, the number is strictly increasing) and for now we want a rollout ratio of 0 because our new version still needs to be built etc.
+Apply these changes via:
 
 ```bash
 oc apply -f serving/011-service-update.yaml
@@ -452,13 +453,17 @@ echo "https://$(oc get routes kiali -n istio-system -o jsonpath='{.spec.host}')/
 
 ![Kiali UI to visualize traffic split.](images/kiali2.png)
 
-Since we've now verified that the new version should indeed be rolled out completely, we can go ahead and move 100% of the traffic over.
+Since we've now verified that the new version should indeed be rolled out completely, we can go ahead and move 100% of the traffic over. We do that
+by making "helloworld-openshift-00002" our current and only revision, and drop "helloworld-openshift-00001" completely. Since we're not rolling
+out anything, we set `rolloutPercent` to 0.
 
 ```diff
-9c9
+8,9c8,9
+<     revisions: ["helloworld-openshift-00001", "helloworld-openshift-00002"]
 <     rolloutPercent: 50
 ---
->     rolloutPercent: 100
+>     revisions: ["helloworld-openshift-00002"]
+>     rolloutPercent: 0
 ```
 
 Apply these changes via:
