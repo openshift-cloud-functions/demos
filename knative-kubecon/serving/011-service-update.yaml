@@ -11,7 +11,7 @@ spec:
       build:
         source:
           git:
-            url: https://github.com/markusthoemmes/ocf-serving-function
+            url: https://github.com/openshift-cloud-functions/openshift-knative-application
             revision: v2
         template:
           name: openshift-builds # change that

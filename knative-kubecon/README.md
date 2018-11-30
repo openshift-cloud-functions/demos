@@ -118,7 +118,7 @@ spec:
   source:
     git:
       url: https://github.com/openshift-cloud-functions/openshift-knative-application
-      revision: master
+      revision: v1
   template:
     name: openshift-builds
     arguments:
@@ -130,8 +130,9 @@ spec:
       value: helloworld-build
 ```
 
-In this particular case, the source code is taken from a git repository's master branch. The arguments to the template then define
-that we want to build a Golang based application and want to name the image `helloworld:latest`.
+In this particular case, the source code is taken from a git repository and its release `v1` is checked out.
+The arguments to the template then define that we want to build a Golang based application and want
+to name the image `helloworld:latest`.
 
 Now we could go ahead and run this build on its own by applying it like the template above and using
 `oc apply -f build/020-build.yaml`, but it's much more interesting to see how it's stringed together
@@ -159,7 +160,7 @@ spec:
         source:
           git:
             url: https://github.com/openshift-cloud-functions/openshift-knative-application
-            revision: master
+            revision: v1
         template:
           name: openshift-builds
           arguments:
