@@ -9,6 +9,8 @@ Build mechanic underneath).
 to nothing as we'll see.
 3. We wire an EventSource emitting IoT events from the Newcastle University to our application through 
 Knative's Eventing capabilities.
+4. We'll roll out a new version via a canary release.
+5. The application will be scaled according to the needs of the incoming traffic.
 
 ## 0. Setting up an OpenShift cluster
 
@@ -78,7 +80,7 @@ spec:
     default: /workspace
   - name: OC_BUILDER_IMAGE
     description: The name of the builder image to use
-    default: docker.io/vdemeester/kobw-builder:0.1.0
+    default: docker.io/vdemeester/kobw-builder:0.1.1
   steps:
   - name: kobw-create-or-update
     image: "${OC_BUILDER_IMAGE}"
@@ -118,7 +120,7 @@ spec:
   source:
     git:
       url: https://github.com/openshift-cloud-functions/openshift-knative-application
-      revision: master
+      revision: v1
   template:
     name: openshift-builds
     arguments:
@@ -130,8 +132,9 @@ spec:
       value: helloworld-build
 ```
 
-In this particular case, the source code is taken from a git repository's master branch. The arguments to the template then define
-that we want to build a Golang based application and want to name the image `helloworld:latest`.
+In this particular case, the source code is taken from a git repository and its release `v1` is checked out.
+The arguments to the template then define that we want to build a Golang based application and want
+to name the image `helloworld:latest`.
 
 Now we could go ahead and run this build on its own by applying it like the template above and using
 `oc apply -f build/020-build.yaml`, but it's much more interesting to see how it's stringed together
@@ -159,7 +162,7 @@ spec:
         source:
           git:
             url: https://github.com/openshift-cloud-functions/openshift-knative-application
-            revision: master
+            revision: v1
         template:
           name: openshift-builds
           arguments:
@@ -387,7 +390,91 @@ the *testevents* pod we've created earlier, which is the Source listening on Kub
 We can also roughly spot how the Knative Serving system works underneath, as our deployment gets requests from the activator and is connected
 to the autoscaler, to provide metrics there.
 
-## 4. Scaling up and down
+What we also spot: Our application has a problem. All requests from the dispatcher to the application are failing.
+
+## 4. Releasing and traffic splitting
+
+If an application contains a bug, we'll want to fix that as soon as possible and roll out the new version as quickly and safe as possible.
+To do so, we'll rely on a concept called *canary release*. To achieve that, one wants to deploy a new version of an application and then
+gradually shift more and more traffic to the new version, to controllably verify it's working as intended. Shifting traffic gradually to
+a new version is called *traffic splitting*.
+
+In this case, there is already a fixed version of the application available as `v2` (we used `v1`) above. To update our service we need to:
+
+1. Instruct it not to run the latest version of our application (indicated by `runLatest` in the KService-YAML above)
+2. Update the application's version to `v2`
+
+That can be achieved through the following changes to the service definition:
+
+```diff
+7c7,9
+<   runLatest:
+---
+>   release:
+>     revisions: ["helloworld-openshift-00001", "helloworld-openshift-00002"]
+>     rolloutPercent: 0
+13c15
+<             revision: v1
+---
+>             revision: v2
+```
+
+This tells the Knative system to release from `helloworld-openshift-00001` (the current revision) to `helloworld-openshift-00002` (the canary
+revision, the number is strictly increasing) and for now we want a rollout ratio of 0 because our new version still needs to be built etc.
+Apply these changes via:
+
+```bash
+oc apply -f serving/011-service-update.yaml
+```
+
+After the build is finished and the pods of the new revision have successfully started, we can start instructing Knative to actually send a portion
+of our traffic to the new version. To do so, we simply change `rolloutPercent` in our service definition to the desired value, let's make it `50` for now.
+
+```diff
+9c9
+<     rolloutPercent: 0
+---
+>     rolloutPercent: 50
+```
+
+Apply these changes via:
+
+```bash
+oc apply -f serving/012-service-traffic.yaml
+```
+
+The system will now evenly divide the traffic between the two deployed versions. Using Kiali, we can verify that the traffic to the new version is indeed
+not causing any errors.
+
+```bash
+# Open in your browser (default credentials: admin/admin)
+echo "https://$(oc get routes kiali -n istio-system -o jsonpath='{.spec.host}')/console/service-graph/myproject?layout=cose-bilkent&duration=60&edges=requestsPercentOfTotal&graphType=app"
+```
+
+![Kiali UI to visualize traffic split.](images/kiali2.png)
+
+Since we've now verified that the new version should indeed be rolled out completely, we can go ahead and move 100% of the traffic over. We do that
+by making "helloworld-openshift-00002" our current and only revision, and drop "helloworld-openshift-00001" completely. Since we're not rolling
+out anything, we set `rolloutPercent` to 0.
+
+```diff
+8,9c8,9
+<     revisions: ["helloworld-openshift-00001", "helloworld-openshift-00002"]
+<     rolloutPercent: 50
+---
+>     revisions: ["helloworld-openshift-00002"]
+>     rolloutPercent: 0
+```
+
+Apply these changes via:
+
+```bash
+oc apply -f serving/013-service-final.yaml
+```
+
+We've now successfully exchanged `v1` of our application with `v2` in a completely controlled manner and could've rolled back immediately at any point in time.
+
+## 5. Scaling up and down
 
 Since the buildings of the University of Newcastle are generating a vast and steady stream of information, Knative will actually scale the application that we've deployed
 to fit the incoming volume dynamically. We should meanwhile have a couple of pods around.

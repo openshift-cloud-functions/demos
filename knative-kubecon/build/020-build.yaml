@@ -6,7 +6,7 @@ spec:
   source:
     git:
       url: https://github.com/openshift-cloud-functions/openshift-knative-application
-      revision: master
+      revision: v1
   template:
     name: openshift-builds # change that
     arguments:

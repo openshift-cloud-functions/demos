@@ -4,13 +4,15 @@ metadata:
   name: helloworld-openshift
   namespace: myproject
 spec:
-  runLatest:
+  release:
+    revisions: ["helloworld-openshift-00002"]
+    rolloutPercent: 0
     configuration:
       build:
         source:
           git:
             url: https://github.com/openshift-cloud-functions/openshift-knative-application
-            revision: v1
+            revision: v2
         template:
           name: openshift-builds # change that
           arguments:
