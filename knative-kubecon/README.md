@@ -218,7 +218,7 @@ echo "https://$(minishift ip):8443/console/project/myproject/browse/builds"
 ![OpenShift Console's Builds page showing the created builds.](images/builds.png)
 
 Once the build finishes, Knative will produce a couple of entities to actually deploy the application.
-The KService consists of two parts: A **Route** and a **Configuration**. The `configuration` is direcrtly apparent
+The KService consists of two parts: A **Route** and a **Configuration**. The `configuration` is directly apparent
 through the respective part in the YAML file above, the Route is only implicitly there.
 
 A Route makes the KService available under a hostname (see the `curl` example below). A Configuration is a description
