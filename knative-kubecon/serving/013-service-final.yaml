@@ -1,0 +1,33 @@
+apiVersion: serving.knative.dev/v1alpha1
+kind: Service
+metadata:
+  name: helloworld-openshift
+  namespace: myproject
+spec:
+  release:
+    revisions: ["helloworld-openshift-00001", "helloworld-openshift-00002"]
+    rolloutPercent: 100
+    configuration:
+      build:
+        source:
+          git:
+            url: https://github.com/openshift-cloud-functions/openshift-knative-application
+            revision: v2
+        template:
+          name: openshift-builds # change that
+          arguments:
+          - name: IMAGE_STREAM
+            value: golang:1.11
+          - name: IMAGE
+            value: "helloworld:latest"
+          - name: NAME
+            value: helloworld-build
+      revisionTemplate:
+        metadata:
+          annotations:
+            alpha.image.policy.openshift.io/resolve-names: "*"
+        spec:
+          containerConcurrency: 3
+          container:
+            imagePullPolicy: Always
+            image: docker-registry.default.svc:5000/myproject/helloworld:latest

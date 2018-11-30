@@ -452,6 +452,23 @@ echo "https://$(oc get routes kiali -n istio-system -o jsonpath='{.spec.host}')/
 
 ![Kiali UI to visualize traffic split.](images/kiali2.png)
 
+Since we've now verified that the new version should indeed be rolled out completely, we can go ahead and move 100% of the traffic over.
+
+```diff
+9c9
+<     rolloutPercent: 50
+---
+>     rolloutPercent: 100
+```
+
+Apply these changes via:
+
+```bash
+oc apply -f serving/013-service-final.yaml
+```
+
+We've now successfully exchanged `v1` of our application with `v2` in a completely controlled manner and could've rolled back immediately at any point in time.
+
 ## 5. Scaling up and down
 
 Since the buildings of the University of Newcastle are generating a vast and steady stream of information, Knative will actually scale the application that we've deployed
