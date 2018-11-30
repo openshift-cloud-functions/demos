@@ -9,6 +9,8 @@ Build mechanic underneath).
 to nothing as we'll see.
 3. We wire an EventSource emitting IoT events from the Newcastle University to our application through 
 Knative's Eventing capabilities.
+4. We'll roll out a new version via a canary release.
+5. The application will be scaled according to the needs of the incoming traffic.
 
 ## 0. Setting up an OpenShift cluster
 
@@ -393,8 +395,9 @@ What we also spot: Our application has a problem. All requests from the dispatch
 ## 4. Releasing and traffic splitting
 
 If an application contains a bug, we'll want to fix that as soon as possible and roll out the new version as quickly and safe as possible.
-To do so, one usually relies on a concept called traffic splitting. Traffic splitting is used to only send a portion of the incoming traffic
-to the new version of the application, to verify in a controlled manner that it's actually working as intended.
+To do so, we'll rely on a concept called *canary release*. To achieve that, one wants to deploy a new version of an application and then
+gradually shift more and more traffic to the new version, to controllably verify it's working as intended. Shifting traffic gradually to
+a new version is called *traffic splitting*.
 
 In this case, there is already a fixed version of the application available as `v2` (we used `v1`) above. To update our service we need to:
 
