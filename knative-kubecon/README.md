@@ -219,8 +219,22 @@ echo "https://$(minishift ip):8443/console/project/myproject/browse/builds"
 
 ![OpenShift Console's Builds page showing the created builds.](images/builds.png)
 
-Once the build finishes Knative will produce a plain Kubernetes deployment that contains the container we specified 
-in the RevisionSpec above.
+Once the build finishes, Knative will produce a couple of entities to actually deploy the application.
+The KService consists of two parts: A **Route** and a **Configuration**. The `configuration` is directly apparent
+through the respective part in the YAML file above, the Route is only implicitly there.
+
+A Route makes the KService available under a hostname (see the `curl` example below). A Configuration is a description
+of the application we're deploying. It contains a `revisionTemplate`, which hints to the fact that a Configuration
+generates a new **Revision** for each change to the Configuration. A Revision is an immutable snapshot of a
+Configuration and gives each deployed configuration a unique name. The Revision then generates a plain Kubernetes
+**Deployment**, which in turn generates the **Pods** that generate the **Containers** for our application.
+
+In short:
+
+1. A Route makes our application available under a hostname.
+2. A Configuration generates a Revision generates a Deployments generates Pods generates our Container.
+
+We can see all of the plain Kubernetes entities in the Console, to see the Deployment for example use:
 
 ```bash
 # Open in your browser (default credentials: admin/admin)
