@@ -1,6 +1,6 @@
 # Camel K on Knative Eventing Demo
 
-This is an *optional demo* showing how to run a [Camel K](https://github.com/apache/camel-k) integration on top of Knative Eventing in order to forward events from a Knative channel to a Slack room.
+This is a demo showing how to run a [Camel K](https://github.com/apache/camel-k) integration on top of Knative Eventing in order to forward events from a Knative channel to a Slack room.
 
 A recording showing the demo in action is available at [https://youtu.be/E3Pvd8oxpik](https://youtu.be/E3Pvd8oxpik).
 
