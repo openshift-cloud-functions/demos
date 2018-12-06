@@ -16,11 +16,12 @@ Knative's Eventing capabilities.
 
 Before we get started, let's setup an environment. This setup guide assumes the usage of `minishift` and the
 setup scripts are tailored to facilitate that. To setup a fresh minishift cluster with OLM, Istio and all parts
-we need from Knative installed, run the following script:
+we need from Knative installed, run the following scripts:
 
 ```bash
 git clone git@github.com:openshift-cloud-functions/knative-operators.git
 ./knative-operators/etc/scripts/install.sh
+./scripts/preload.sh
 ```
 
 > This script is destructive towards the 'knative' profile in minishift.
