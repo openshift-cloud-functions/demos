@@ -1,7 +1,7 @@
 apiVersion: serving.knative.dev/v1alpha1
 kind: Service
 metadata:
-  name: helloworld-openshift
+  name: dumpy
   namespace: myproject
 spec:
   runLatest:
@@ -17,9 +17,9 @@ spec:
           - name: IMAGE_STREAM
             value: golang:1.11
           - name: IMAGE
-            value: "helloworld:latest"
+            value: "dumpy:latest"
           - name: NAME
-            value: helloworld-build
+            value: dumpy-build
       revisionTemplate:
         metadata:
           annotations:
@@ -28,4 +28,4 @@ spec:
           containerConcurrency: 3
           container:
             imagePullPolicy: Always
-            image: docker-registry.default.svc:5000/myproject/helloworld:latest
+            image: docker-registry.default.svc:5000/myproject/dumpy:latest

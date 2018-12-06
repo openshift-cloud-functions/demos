@@ -13,6 +13,6 @@ spec:
     - name: IMAGE_STREAM
       value: golang:1.11
     - name: IMAGE
-      value: "helloworld:latest"
+      value: "dumpy:latest"
     - name: NAME
-      value: helloworld-build
+      value: dumpy-build
