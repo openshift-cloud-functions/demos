@@ -127,14 +127,14 @@ spec:
     - name: IMAGE_STREAM
       value: golang:1.11
     - name: IMAGE
-      value: "helloworld:latest"
+      value: "dumpy:latest"
     - name: NAME
-      value: helloworld-build
+      value: dumpy-build
 ```
 
 In this particular case, the source code is taken from a git repository and its release `v1` is checked out.
 The arguments to the template then define that we want to build a Golang based application and want
-to name the image `helloworld:latest`.
+to name the image `dumpy:latest`.
 
 Now we could go ahead and run this build on its own by applying it like the template above and using
 `oc apply -f build/020-build.yaml`, but it's much more interesting to see how it's stringed together
@@ -153,7 +153,7 @@ A KService definition looks like this:
 apiVersion: serving.knative.dev/v1alpha1
 kind: Service
 metadata:
-  name: helloworld-openshift
+  name: dumpy
   namespace: myproject
 spec:
   runLatest:
@@ -169,9 +169,9 @@ spec:
           - name: IMAGE_STREAM
             value: golang:1.11
           - name: IMAGE
-            value: "helloworld:latest"
+            value: "dumpy:latest"
           - name: NAME
-            value: helloworld-build
+            value: dumpy-build
       revisionTemplate:
         metadata:
           annotations:
@@ -180,7 +180,7 @@ spec:
           containerConcurrency: 3
           container:
             imagePullPolicy: Always
-            image: docker-registry.default.svc:5000/myproject/helloworld:latest
+            image: docker-registry.default.svc:5000/myproject/dumpy:latest
 ```
 
 It's very apparent that the `spec.runLatest.configuration.build` part is a one-to-one copy of the Build
@@ -249,7 +249,7 @@ we'll get the domain of the KService:
 ```bash
 $ oc get kservice
 NAME                   DOMAIN                                       LATESTCREATED                LATESTREADY                  READY     REASON
-helloworld-openshift   helloworld-openshift.myproject.example.com   helloworld-openshift-00001   helloworld-openshift-00001   True
+dumpy   dumpy.myproject.example.com   dumpy-00001   dumpy-00001   True
 ```
 
 The *DOMAIN* part is what we're interested in. The actual request is then sent to the entrypoint of our
@@ -257,7 +257,7 @@ servicemesh, which is listening on `$(minishift ip):32380`). Stringed together w
 command:
 
 ```bash
-$ curl -H "Host: helloworld-openshift.myproject.example.com" "http://$(minishift ip):32380/health"
+$ curl -H "Host: dumpy.myproject.example.com" "http://$(minishift ip):32380/health"
 
                     888 888             888
                     888 888             888
@@ -368,12 +368,12 @@ spec:
     ref:
       apiVersion: serving.knative.dev/v1alpha1
       kind: Service
-      name: helloworld-openshift
+      name: dumpy
 ```
 
-This Subscription again references the `testchannel` and also defines a `Subscriber`, in this case the Serving application `helloworld-openshift` we built earlier.
+This Subscription again references the `testchannel` and also defines a `Subscriber`, in this case the Serving application `dumpy` we built earlier.
 This basically means that we have subscribed the previously built application to the `testchannel`.
-Once we apply the `Subscription` any Kubernetes platform events from the `myproject` namespace will be routed to the `helloworld-openshift` application.
+Once we apply the `Subscription` any Kubernetes platform events from the `myproject` namespace will be routed to the `dumpy` application.
 Behind the scenes there is a `SubscriptionController` which is doing the wiring for us.
 
 ```bash
@@ -384,7 +384,7 @@ And by that, events coming through our source are now dispatched via a channel t
 the events by having a look at the logs of our application.
 
 ```bash
-oc logs helloworld-openshift-00001-deployment-5f8dbfb49c-txg8j -c user-container
+oc logs dumpy-00001-deployment-5f8dbfb49c-txg8j -c user-container
 ```
 
 We can also visualize what's exactly happening using Kiali.
@@ -396,7 +396,7 @@ echo "https://$(oc get routes kiali -n istio-system -o jsonpath='{.spec.host}')/
 
 ![Kiali UI to visualize how the app is structured.](images/kiali.png)
 
-The graph visualizes how the app we've deployed, which is represented by the deployment *helloworld-openshift-00001* in this screenshot,
+The graph visualizes how the app we've deployed, which is represented by the deployment *dumpy-00001* in this screenshot,
 is connected with various components of Knative. Events can flow in either via the *knative-ingressgateway* (essentially: from anywhere)
 and the *in-memory-channel-dispatcher*, which we've deployed earlier to be able to receive events. That channel gets its events via
 the *testevents* pod we've created earlier, which is the Source listening on Kubernetes Events.
@@ -425,7 +425,7 @@ That can be achieved through the following changes to the service definition:
 <   runLatest:
 ---
 >   release:
->     revisions: ["helloworld-openshift-00001", "helloworld-openshift-00002"]
+>     revisions: ["dumpy-00001", "dumpy-00002"]
 >     rolloutPercent: 0
 13c15
 <             revision: v1
@@ -433,7 +433,7 @@ That can be achieved through the following changes to the service definition:
 >             revision: v2
 ```
 
-This tells the Knative system to release from `helloworld-openshift-00001` (the current revision) to `helloworld-openshift-00002` (the canary
+This tells the Knative system to release from `dumpy-00001` (the current revision) to `dumpy-00002` (the canary
 revision, the number is strictly increasing) and for now we want a rollout ratio of 0 because our new version still needs to be built etc.
 Apply these changes via:
 
@@ -468,15 +468,15 @@ echo "https://$(oc get routes kiali -n istio-system -o jsonpath='{.spec.host}')/
 ![Kiali UI to visualize traffic split.](images/kiali2.png)
 
 Since we've now verified that the new version should indeed be rolled out completely, we can go ahead and move 100% of the traffic over. We do that
-by making "helloworld-openshift-00002" our current and only revision, and drop "helloworld-openshift-00001" completely. Since we're not rolling
+by making "dumpy-00002" our current and only revision, and drop "dumpy-00001" completely. Since we're not rolling
 out anything, we set `rolloutPercent` to 0.
 
 ```diff
 8,9c8,9
-<     revisions: ["helloworld-openshift-00001", "helloworld-openshift-00002"]
+<     revisions: ["dumpy-00001", "dumpy-00002"]
 <     rolloutPercent: 50
 ---
->     revisions: ["helloworld-openshift-00002"]
+>     revisions: ["dumpy-00002"]
 >     rolloutPercent: 0
 ```
 
