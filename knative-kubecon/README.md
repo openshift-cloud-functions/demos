@@ -385,7 +385,7 @@ And by that, events coming through our source are now dispatched via a channel t
 the events by having a look at the logs of our application.
 
 ```bash
-oc logs dumpy-00001-deployment-5f8dbfb49c-txg8j -c user-container
+oc logs -c user-container --since=1m $(oc get pods | grep -m1 -E "dumpy.*deployment.*Running" | awk '{print $1}')
 ```
 
 We can also visualize what's exactly happening using Kiali.
