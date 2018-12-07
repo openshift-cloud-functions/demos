@@ -27,7 +27,7 @@ spec:
           annotations:
             alpha.image.policy.openshift.io/resolve-names: "*"
         spec:
-          containerConcurrency: 3
+          containerConcurrency: 1
           container:
             imagePullPolicy: Always
             image: docker-registry.default.svc:5000/myproject/dumpy:latest

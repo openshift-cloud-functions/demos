@@ -178,7 +178,7 @@ spec:
           annotations:
             alpha.image.policy.openshift.io/resolve-names: "*"
         spec:
-          containerConcurrency: 3
+          containerConcurrency: 1
           container:
             imagePullPolicy: Always
             image: docker-registry.default.svc:5000/myproject/dumpy:latest
@@ -315,11 +315,12 @@ Next let's take a look at the EventSource.
 apiVersion: sources.eventing.knative.dev/v1alpha1
 kind: ContainerSource
 metadata:
-  name: urbanobservatory-event-source
+  name: heartbeat-event-source
 spec:
-  image: docker.io/markusthoemmes/knative-websocket-eventsource
+  image: docker.io/matzew/kube-heartbeat
   args: 
-    - '--source=wss://api.usb.urbanobservatory.ac.uk/stream'
+   - '--label="<3"'
+   - '--period=400'
   sink:
     apiVersion: eventing.knative.dev/v1alpha1
     kind: Channel
@@ -328,15 +329,8 @@ spec:
 
 This is starting to get a little bit more interesting. This EventSource is a so called `ContainerSource`. As such, it runs a container
 based off the image given and instructs it to send its event to the sink described in the YAML. In this case, this container happens
-to be a Websocket connector and we want all events coming from the specified Websocket server to be forwarded to the given sink. That
+to be a _hearbeat_ application, written in Golang, which generates events at a configurable rate, to be forwarded to the given sink. That
 sink is the channel that we created before in this case.
-
-This source in particular will emit IoT events from the buildings of the University of Newcastle, how cool is that? We'll allow it to
-actually reach the defined host by setting up matching egress policies:
-
-```bash
-oc apply -f eventing/020-egress.yaml
-```
 
 If we now apply our source YAML, we will see a pod created which is an instance of the source we defined above.
 
