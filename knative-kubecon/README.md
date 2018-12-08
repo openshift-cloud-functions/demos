@@ -253,6 +253,10 @@ NAME                   DOMAIN                                       LATESTCREATE
 dumpy   dumpy.myproject.example.com   dumpy-00001   dumpy-00001   True
 ```
 
+Don't worry if its *READY* state happens to be false; it just means
+that the service has been scaled to 0 due to inactivity. It'll be
+ready for the next request.
+
 The *DOMAIN* part is what we're interested in. The actual request is then sent to the entrypoint of our
 servicemesh, which is listening on `$(minishift ip):32380`). Stringed together we get the following
 command:
@@ -384,9 +388,18 @@ oc apply -f eventing/030-subscription.yaml
 And by that, events coming through our source are now dispatched via a channel to the service that we created in the beginning of this tutorial. We can actually see
 the events by having a look at the logs of our application.
 
-```bash
-oc logs -c user-container --since=1m $(oc get pods | grep -m1 -E "dumpy.*deployment.*Running" | awk '{print $1}')
-```
+Monitor the pods until at least one enters the running state (use
+ctl-c to stop "watching" the pods)
+
+    $ oc get pods -l app=dumpy-00001 --watch
+    NAME                                      READY     STATUS    RESTARTS   AGE
+    dumpy-00001-deployment-77866f577b-f4w5x   3/3       Running   0          1m
+    dumpy-00001-deployment-77866f577b-qk8p9   3/3       Running   0          6m
+    dumpy-00001-deployment-77866f577b-xpgnc   3/3       Running   0          1m
+
+And then view the logs from one of your pods:
+
+    $ oc logs -c user-container --since=1m dumpy-00001-deployment-77866f577b-xpgnc
 
 We can also visualize what's exactly happening using Kiali.
 
