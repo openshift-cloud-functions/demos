@@ -34,6 +34,12 @@ eval $(minishift oc-env)
 oc project myproject
 ```
 
+Now you need to clone _this_ repository in order perform the commandline steps below:
+
+```bash
+git clone git@github.com:openshift-cloud-functions/demo.git
+```
+
 There we are, let's get crackin'.
 
 ### Setting up access rights
@@ -329,8 +335,7 @@ spec:
 
 This is starting to get a little bit more interesting. This EventSource is a so called `ContainerSource`. As such, it runs a container
 based off the image given and instructs it to send its event to the sink described in the YAML. In this case, this container happens
-to be a _hearbeat_ application, written in Golang, which generates events at a configurable rate, to be forwarded to the given sink. That
-sink is the channel that we created before in this case.
+to be a [_hearbeat_ application](https://github.com/matzew/heartbeat/blob/master/main.go), written in Golang, which generates events at a configurable rate, to be forwarded to the given sink. That sink is the channel that we created before in this case.
 
 If we now apply our source YAML, we will see a pod created which is an instance of the source we defined above.
 
