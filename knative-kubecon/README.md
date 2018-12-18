@@ -513,7 +513,7 @@ echo "https://$(minishift ip):8443/console/project/myproject/browse/deployments"
 
 ![OpenShift Console's Deployments page showning the created deployment scaled to 3.](images/scaleup.png)
 
-Now, the serverless promise is to alyway only need what is necessary to serve the traffic to our application. That means, if there is no traffic our application should
+Now, the serverless promise is to only need what is necessary to serve the traffic to our application. That means, if there is no traffic our application should
 have zero pods. We can simulate that by removing the subscription of the channel to our application:
 
 ```bash
