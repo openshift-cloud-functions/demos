@@ -19,7 +19,9 @@ setup scripts are tailored to facilitate that. To setup a fresh minishift cluste
 we need from Knative installed, run the following scripts:
 
 ```bash
-git clone git@github.com:openshift-cloud-functions/knative-operators.git
+git clone https://github.com/openshift-cloud-functions/demos.git
+cd demos/knative-kubecon
+git clone https://github.com/openshift-cloud-functions/knative-operators.git
 ./knative-operators/etc/scripts/install.sh
 ./scripts/preload.sh
 ```
@@ -32,12 +34,6 @@ After this script exits without any errors, your cluster will be setup and ready
 ```bash
 eval $(minishift oc-env)
 oc project myproject
-```
-
-Now you need to clone _this_ repository in order perform the commandline steps below:
-
-```bash
-git clone git@github.com:openshift-cloud-functions/demo.git
 ```
 
 There we are, let's get crackin'.
