@@ -28,4 +28,4 @@ spec:
           containerConcurrency: 1
           container:
             imagePullPolicy: Always
-            image: docker-registry.default.svc:5000/myproject/dumpy:latest
+            image: image-registry.openshift-image-registry.svc:5000/myproject/dumpy:latest

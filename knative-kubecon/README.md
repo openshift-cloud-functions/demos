@@ -187,7 +187,7 @@ spec:
           containerConcurrency: 1
           container:
             imagePullPolicy: Always
-            image: docker-registry.default.svc:5000/myproject/dumpy:latest
+            image: image-registry.openshift-image-registry.svc:5000/myproject/dumpy:latest
 ```
 
 It's very apparent that the `spec.runLatest.configuration.build` part is a one-to-one copy of the Build
@@ -268,7 +268,8 @@ servicemesh, which is listening on `$(minishift ip):32380`). Stringed together w
 command:
 
 ```bash
-$ curl -H "Host: dumpy.myproject.example.com" "http://$(minishift ip):32380/health"
+$ NODE_IP=$(oc get node -ojsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
+$ curl -H "Host: dumpy.myproject.example.com" "http://$NODE_IP:32380/health"
 
                     888 888             888
                     888 888             888
