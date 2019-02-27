@@ -268,8 +268,8 @@ servicemesh, which is listening on `$(minishift ip):32380`). Stringed together w
 command:
 
 ```bash
-$ NODE_IP=$(oc get node -ojsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
-$ curl -H "Host: dumpy.myproject.example.com" "http://$NODE_IP:32380/health"
+$ IP=$(oc get -n istio-system service istio-ingressgateway -ojsonpath='{.status.loadBalancer.ingress[0].hostname}')
+$ curl -H "Host: dumpy.myproject.example.com" "http://$IP/health"
 
                     888 888             888
                     888 888             888
