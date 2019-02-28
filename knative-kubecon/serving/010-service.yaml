@@ -26,6 +26,7 @@ spec:
             alpha.image.policy.openshift.io/resolve-names: "*"
         spec:
           containerConcurrency: 1
+          timeoutSeconds: 60
           container:
             imagePullPolicy: Always
             image: image-registry.openshift-image-registry.svc:5000/myproject/dumpy:latest
