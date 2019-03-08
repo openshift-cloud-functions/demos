@@ -32,3 +32,6 @@ spec:
           container:
             imagePullPolicy: Always
             image: image-registry.openshift-image-registry.svc:5000/myproject/dumpy:latest
+            resources:
+              requests:
+                cpu: 50m
