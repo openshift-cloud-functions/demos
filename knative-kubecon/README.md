@@ -14,7 +14,7 @@ Knative's Eventing capabilities.
 
 ## 0. Setting up an OpenShift cluster
 
-Before we get started, let's setup an environment. This setup guide assumes the usage of OpenShift 4.0 (OCP 4) and the setup scripts are tailored to facilitate that. To setup a cluster with Istio and all the parts needed from Knative installed, run the following scripts:
+Before we get started, let's setup an environment. This setup guide, assumes the usage of OpenShift 4.0 (OCP 4) and the setup scripts are tailored to facilitate that. To setup a cluster with Istio and the installed Knative components, run the following scripts:
 
   ```bash
   git clone https://github.com/openshift-cloud-functions/demos.git
