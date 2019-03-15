@@ -7,32 +7,33 @@ offer:
 Build mechanic underneath).
 2. The built image is then deployed as a Knative Service, which means it scales automatically, even down
 to nothing as we'll see.
-3. We wire an EventSource emitting IoT events from the Newcastle University to our application through 
+3. We wire an EventSource emitting IoT events from the heartbeat source to our application through 
 Knative's Eventing capabilities.
-4. We'll roll out a new version via a canary release.
+4. We'll roll out a new version by using a canary release.
 5. The application will be scaled according to the needs of the incoming traffic.
 
 ## 0. Setting up an OpenShift cluster
 
-Before we get started, let's setup an environment. This setup guide assumes the usage of `minishift` and the
-setup scripts are tailored to facilitate that. To setup a fresh minishift cluster with OLM, Istio and all parts
-we need from Knative installed, run the following scripts:
+Before we get started, let's setup an environment. This setup guide assumes the usage of OpenShift 4.0 (OCP 4) and the setup scripts are tailored to facilitate that. To setup a cluster with Istio and all the parts needed from Knative installed, run the following scripts:
 
-```bash
-git clone https://github.com/openshift-cloud-functions/demos.git
-cd demos/knative-kubecon
-git clone https://github.com/openshift-cloud-functions/knative-operators.git
-./knative-operators/etc/scripts/install.sh
-./scripts/preload.sh
-```
+  ```bash
+  git clone https://github.com/openshift-cloud-functions/demos.git
+  cd demos/knative-kubecon
 
-> This script is destructive towards the 'knative' profile in minishift.
+  git clone https://github.com/openshift-cloud-functions/knative-operators.git
+  cd knative-operators/
+  git fetch --tags
+  git checkout openshift-v0.3.0
+
+  ./knative-operators/etc/scripts/install.sh
+  ./scripts/preload.sh
+  ```
 
 After this script exits without any errors, your cluster will be setup and ready to go. Next, let's make `oc`
 (OpenShift's CLI) available in the current terminal and set the namespace to `myproject`:
 
 ```bash
-eval $(minishift oc-env)
+eval $(ocp4 oc-env)
 oc project myproject
 ```
 
@@ -207,7 +208,7 @@ that orchestrates the build.
 
 ```bash
 # Open in your browser (default credentials: admin/admin)
-echo "https://$(minishift ip):8443/console/project/myproject/browse/pods"
+echo "https://$(ocp4 ip):8443/console/project/myproject/browse/pods"
 ```
 
 ![OpenShift Console's Pods page shown pods being created for the build.](images/pods.png)
@@ -217,7 +218,7 @@ on the Builds page.
 
 ```bash
 # Open in your browser (default credentials: admin/admin)
-echo "https://$(minishift ip):8443/console/project/myproject/browse/builds"
+echo "https://$(ocp4 ip):8443/console/project/myproject/browse/builds"
 ```
 
 ![OpenShift Console's Builds page showing the created builds.](images/builds.png)
@@ -241,7 +242,7 @@ We can see all of the plain Kubernetes entities in the Console, to see the Deplo
 
 ```bash
 # Open in your browser (default credentials: admin/admin)
-echo "https://$(minishift ip):8443/console/project/myproject/browse/deployments"
+echo "https://$(ocp4 ip):8443/console/project/myproject/browse/deployments"
 ```
 
 ![OpenShift Console's Deployments page showning the created deployment with 1 replica.](images/deployments.png)
@@ -346,13 +347,13 @@ oc apply -f eventing/021-source.yaml
 
 ```bash
 # Open in your browser (default credentials: admin/admin)
-echo "https://$(minishift ip):8443/console/project/myproject/browse/deployments"
+echo "https://$(ocp4 ip):8443/console/project/myproject/browse/deployments"
 ```
 
 ![OpenShift Console's Deployments page showning the created deployment for the source.](images/source.png)
 
 The EventSource is up and running and the final piece of the Knative Eventing is how we wire everything together.
-This is done via a Subscription.
+This is done by using a Subscription.
 
 ```yaml
 apiVersion: eventing.knative.dev/v1alpha1
@@ -477,9 +478,7 @@ echo "https://$(oc get routes kiali -n istio-system -o jsonpath='{.spec.host}')/
 
 ![Kiali UI to visualize traffic split.](images/kiali2.png)
 
-Since we've now verified that the new version should indeed be rolled out completely, we can go ahead and move 100% of the traffic over. We do that
-by making "dumpy-00002" our current and only revision, and drop "dumpy-00001" completely. Since we're not rolling
-out anything, we set `rolloutPercent` to 0.
+Since we've now verified that the new version should indeed be rolled out completely, we can go ahead and move 100% of the traffic over. We do that by making "dumpy-00002" our current and only revision, and drop "dumpy-00001" completely. Since we're not rolling out anything, we set `rolloutPercent` to 0.
 
 ```diff
 8,9c8,9
@@ -500,12 +499,11 @@ We've now successfully exchanged `v1` of our application with `v2` in a complete
 
 ## 5. Scaling up and down
 
-Since the buildings of the University of Newcastle are generating a vast and steady stream of information, Knative will actually scale the application that we've deployed
-to fit the incoming volume dynamically. We should meanwhile have a couple of pods around.
+Since the building of the heartbeat source generates a vast and steady stream of information, Knative actually scales the application that is deployed to fit the incoming volume dynamically. Meanwhile, we should have a couple of pods around.
 
 ```bash
 # Open in your browser (default credentials: admin/admin)
-echo "https://$(minishift ip):8443/console/project/myproject/browse/deployments"
+echo "https://$(ocp4 ip):8443/console/project/myproject/browse/deployments"
 ```
 
 ![OpenShift Console's Deployments page showning the created deployment scaled to 3.](images/scaleup.png)
@@ -517,12 +515,11 @@ have zero pods. We can simulate that by removing the subscription of the channel
 oc delete -f eventing/030-subscription.yaml
 ```
 
-Now we wait a couple of minutes and we'll see the pods slowly disappearing until they even disappear completely. Reinstanatiating the subscription as shown above
-will bring them back in numbers to serve the traffic of course.
+Now, wait a few minutes and see the pods slowly disappear, until they disappear completely. Reinstanatiating the subscription as shown above brings them back in numbers to serve the traffic.
 
 ```bash
 # Open in your browser (default credentials: admin/admin)
-echo "https://$(minishift ip):8443/console/project/myproject/browse/deployments"
+echo "https://$(ocp4 ip):8443/console/project/myproject/browse/deployments"
 ```
 
 ![OpenShift Console's Deployments page showning the created deployment scaled to 0.](images/scale0.png)
