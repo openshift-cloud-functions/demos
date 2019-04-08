@@ -417,17 +417,26 @@ What we also spot: Our application has a problem. All requests from the dispatch
 
 ## 4. Releasing and traffic splitting
 
-If an application contains a bug, we'll want to fix that as soon as possible and roll out the new version as quickly and safe as possible.
-To do so, we'll rely on a concept called *canary release*. To achieve that, one wants to deploy a new version of an application and then
-gradually shift more and more traffic to the new version, to controllably verify it's working as intended. Shifting traffic gradually to
+If an application contains a bug, we'll want to fix that as soon as possible and roll out the new version as quickly and safely as possible.
+To do so, we'll rely on a concept called *canary release*. Deploy a new version of an application and then
+gradually shift more and more traffic to the new version, to controllably verify it is working as intended. Shifting traffic gradually to
 a new version is called *traffic splitting*.
 
 In this case, there is already a fixed version of the application available as `v2` (we used `v1`) above. To update our service we need to:
 
 1. Instruct it not to run the latest version of our application (indicated by `runLatest` in the KService-YAML above)
-2. Update the application's version to `v2`
+2. Update the application's version to `v2`.
 
-That can be achieved through the following changes to the service definition:
+
+To get the latest created revision for any Knative Service, use the kubectl command:
+
+```bash
+kubectl get ksvc my-knative-service -o jsonpath=" {.status.latestCreatedRevisionName}
+```
+Lookup the latest revision name and do a substitution in the yaml file stored in the tutorial repository, before applying it. For more information on updating and substituting revisions, refer to the [Knative tutorial repository](https://github.com/redhat-developer-demos/knative-tutorial).
+
+
+Updating a service can be achieved, by adding the latest created revision to the service definition. An example of these changes are displayed in the following:
 
 ```diff
 7c7,9
@@ -443,7 +452,8 @@ That can be achieved through the following changes to the service definition:
 ```
 
 This tells the Knative system to release from `dumpy-00001` (the current revision) to `dumpy-00002` (the canary
-revision, the number is strictly increasing) and for now we want a rollout ratio of 0 because our new version still needs to be built etc.
+revision) and for now we want a rollout ratio of 0 because our new version still needs to be built.
+
 Apply these changes via:
 
 ```bash
@@ -457,7 +467,7 @@ of our traffic to the new version. To do so, we simply change `rolloutPercent` i
 9c9
 <     rolloutPercent: 0
 ---
->     rolloutPercent: 50
+https://github.com/redhat-developer-demos/knative-tutorial>     rolloutPercent: 50
 ```
 
 Apply these changes via:
@@ -476,9 +486,7 @@ echo "https://$(oc get routes kiali -n istio-system -o jsonpath='{.spec.host}')/
 
 ![Kiali UI to visualize traffic split.](images/kiali2.png)
 
-Since we've now verified that the new version should indeed be rolled out completely, we can go ahead and move 100% of the traffic over. We do that
-by making "dumpy-00002" our current and only revision, and drop "dumpy-00001" completely. Since we're not rolling
-out anything, we set `rolloutPercent` to 0.
+Since we've now verified that the new version should indeed be rolled out completely, we can go ahead and move 100% of the traffic over. We do that by making the latest current revision, "dumpy-00002" our current and only revision, and drop "dumpy-00001" completely. Since we're not rolling out anything, we set `rolloutPercent` to 0.
 
 ```diff
 8,9c8,9
@@ -530,7 +538,7 @@ echo "https://$(minishift ip):8443/console/project/myproject/browse/deployments"
 ## Conclusion
 
 With that we've successfully touched many aspects of what Knative has to offer today. We've built a Knative application
-from scratch, making use of OpenShifts existing rich Build support. We've further seen how to hook that application up with
-an arbitrary event source, to feed that data to our application in a declarative fashion. Lastly, we've seen how Knative
+from scratch, making use of OpenShift's existing rich Build support. We've further seen how to link that application with
+an arbitrary Event source, to feed that data to our application in a declarative fashion. Lastly, we've seen how Knative
 scaled our application according to the needs of incoming traffic and even scaled the application down to zero instances,
-when no traffic was coming in at all.
+when there was no incoming traffic.
