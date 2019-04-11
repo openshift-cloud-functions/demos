@@ -33,7 +33,7 @@ After this script exits without any errors, your cluster will be setup and ready
 (OpenShift's CLI) available in the current terminal and set the namespace to `myproject`:
 
 ```bash
-eval $(ocp4 oc-env)
+eval $(ocp oc-env)
 oc project myproject
 ```
 
@@ -53,9 +53,9 @@ oc apply -f build/000-rolebinding.yaml
 
 ## 1. The Build component
 
-The Build component in Knative is not so much a utility to build images themselves. It rather provides primitives,
-to be able to string together the tools you want to do your image build. In a sense, it's an abstraction layer above
-all the tools out there to build an image. In our case, the most prominent example is OpenShift's own build capability,
+The Build component in Knative is not so much a utility to build images themselves. Rather, it provides primitives,
+that enable you to string together the tools you want to do your image build. In a sense, it's an abstraction layer above
+all the tools out, there to build an image. In our case, the most prominent example is OpenShift's own build capability,
 so this will show you, how we can implement a Knative Build by the means of an OpenShift Build.
 
 Knative provides a mechanism called **BuildTemplates**, where you define a blueprint for a build, which contains the
@@ -208,7 +208,7 @@ that orchestrates the build.
 
 ```bash
 # Open in your browser (default credentials: admin/admin)
-echo "https://$(ocp4 ip):8443/console/project/myproject/browse/pods"
+echo "https://$(ocp ip):8443/console/project/myproject/browse/pods"
 ```
 
 ![OpenShift Console's Pods page shown pods being created for the build.](images/pods.png)
@@ -218,7 +218,7 @@ on the Builds page.
 
 ```bash
 # Open in your browser (default credentials: admin/admin)
-echo "https://$(ocp4 ip):8443/console/project/myproject/browse/builds"
+echo "https://$(ocp ip):8443/console/project/myproject/browse/builds"
 ```
 
 ![OpenShift Console's Builds page showing the created builds.](images/builds.png)
@@ -242,7 +242,7 @@ We can see all of the plain Kubernetes entities in the Console, to see the Deplo
 
 ```bash
 # Open in your browser (default credentials: admin/admin)
-echo "https://$(ocp4 ip):8443/console/project/myproject/browse/deployments"
+echo "https://$(ocp ip):8443/console/project/myproject/browse/deployments"
 ```
 
 ![OpenShift Console's Deployments page showning the created deployment with 1 replica.](images/deployments.png)
@@ -347,7 +347,7 @@ oc apply -f eventing/021-source.yaml
 
 ```bash
 # Open in your browser (default credentials: admin/admin)
-echo "https://$(ocp4 ip):8443/console/project/myproject/browse/deployments"
+echo "https://$(ocp ip):8443/console/project/myproject/browse/deployments"
 ```
 
 ![OpenShift Console's Deployments page showning the created deployment for the source.](images/source.png)
@@ -503,7 +503,7 @@ Since the building of the heartbeat source generates a vast and steady stream of
 
 ```bash
 # Open in your browser (default credentials: admin/admin)
-echo "https://$(ocp4 ip):8443/console/project/myproject/browse/deployments"
+echo "https://$(ocp ip):8443/console/project/myproject/browse/deployments"
 ```
 
 ![OpenShift Console's Deployments page showning the created deployment scaled to 3.](images/scaleup.png)
@@ -519,7 +519,7 @@ Now, wait a few minutes and see the pods slowly disappear, until they disappear 
 
 ```bash
 # Open in your browser (default credentials: admin/admin)
-echo "https://$(ocp4 ip):8443/console/project/myproject/browse/deployments"
+echo "https://$(ocp ip):8443/console/project/myproject/browse/deployments"
 ```
 
 ![OpenShift Console's Deployments page showning the created deployment scaled to 0.](images/scale0.png)
