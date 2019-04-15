@@ -424,7 +424,7 @@ a new version is called *traffic splitting*.
 
 In this case, there is already a fixed version of the application available as `v2` (we used `v1`) above. To update our service we need to:
 
-1. Instruct it not to run the latest version of our application (indicated by `runLatest` in the KService-YAML above)
+1. Instruct it not to run the latest version of our application (indicated by `runLatest` in the KService-YAML above).
 2. Update the application's version to `v2`.
 
 
