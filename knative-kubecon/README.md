@@ -472,7 +472,7 @@ of our traffic to the new version. To do so, we simply change `rolloutPercent` i
 ```
 ```
 
-Apply these changes b using:
+Apply these changes by using:
 
 ```bash
 oc apply -f serving/012-service-traffic.yaml
