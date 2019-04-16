@@ -463,14 +463,16 @@ oc apply -f serving/011-service-update.yaml
 After the build is finished and the pods of the new revision have successfully started, we can start instructing Knative to actually send a portion
 of our traffic to the new version. To do so, we simply change `rolloutPercent` in our service definition to the desired value, let's make it `50` for now.
 
+
 ```diff
 9c9
 <     rolloutPercent: 0
 ---
-https://github.com/redhat-developer-demos/knative-tutorial>     rolloutPercent: 50
+>     rolloutPercent: 50
+```
 ```
 
-Apply these changes via:
+Apply these changes b using:
 
 ```bash
 oc apply -f serving/012-service-traffic.yaml
