@@ -431,7 +431,7 @@ In this case, there is already a fixed version of the application available as `
 To get the latest created revision for any Knative Service, use the kubectl command:
 
 ```bash
-kubectl get ksvc my-knative-service -o jsonpath=" {.status.latestCreatedRevisionName}
+kubectl get ksvc my-knative-service -o jsonpath=" {.status.latestCreatedRevisionName} "
 ```
 Lookup the latest revision name and do a substitution in the yaml file stored in the tutorial repository, before applying it. For more information on updating and substituting revisions, refer to the [Knative tutorial repository](https://github.com/redhat-developer-demos/knative-tutorial).
 
