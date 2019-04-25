@@ -9,5 +9,5 @@ spec:
    - '--period=400'
   sink:
     apiVersion: eventing.knative.dev/v1alpha1
-    kind: Channel
-    name: testchannel
+    kind: Broker
+    name: default
