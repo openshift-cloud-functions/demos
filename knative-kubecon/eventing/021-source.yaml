@@ -2,6 +2,7 @@ apiVersion: sources.eventing.knative.dev/v1alpha1
 kind: ContainerSource
 metadata:
   name: heartbeat-event-source
+  namespace: myproject
 spec:
   image: docker.io/matzew/kube-heartbeat
   args: 
