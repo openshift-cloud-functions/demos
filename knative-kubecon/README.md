@@ -286,33 +286,42 @@ In this part of the demo we are going to show how you can receive Kubernetes pla
 
 Knative Eventing is built on top of three primitives:
 * Event Sources
-* Channels
-* Subscriptions
+* Brokers
+* Triggers
 
-**Event Sources** are the components that receive the external events and forward them onto **Sinks** which can be a **Channel**.
-Out of the box we have Channels that are backed by Apache Kafka, GCPPubSub and a simple in-memory channel.
-**Subscriptions** are used to connect Knative Serving application to a Channel so that it can respond to the events that the channel emits.
+**Event Sources** are the components that receive the external events and forward them onto **Sinks** which can be mediated by a **Trigger**.
+Triggers are offer the opportunity to filter out events by attributes.  An alternative Event transporation mechanism are **Channels** which are backed by Apache Kafka, GCPPubSub and a simple in-memory channel.
+**Triggers** are used to connect Knative Serving application to a Broker so that it can respond to the events that the Broker emits.
 
 Let's take a look at some of those resources in more detail.
 
-We have some yaml files prepared which describe the various resources, firstly the channel.
+We have some yaml files prepared which describe the various resources, firstly the Trigger.
 
 ```yaml
 apiVersion: eventing.knative.dev/v1alpha1
-kind: Channel
+kind: Trigger
 metadata:
-  name: testchannel
+  name: my-service-trigger
+  namespace: myproject
 spec:
-  provisioner:
-    apiVersion: eventing.knative.dev/v1alpha1
-    kind: ClusterChannelProvisioner
-    name: in-memory-channel
+  filter:
+    sourceAndType:
+      type: dev.knative.source.heartbeats
+  subscriber:
+    ref:
+      apiVersion: serving.knative.dev/v1alpha1
+      kind: Service
+      name: dumpy
+
 ```
 Here we can see that we've got a channel named `testchannel` and it is an `in-memory-channel` which is what we're going to use for this demo - in production we would probably use Apache Kafka.
 Let's deploy that so that we can use it in a later stage.
 
++Here we can see that we've got a trigger named `my-service-trigger` and it is a `filter` on events from the `sourceAndType` source which is what we're going to use for this demo.
+The trigger will send events through to its `subscriber` which is the dumpy service we defined earlier. Let's deploy that so that we can use it in a later stage.
+
 ```bash
-oc apply -f eventing/010-channel.yaml
+oc apply -f eventing/010-trigger.yaml
 ```
 
 Next let's take a look at the EventSource.
@@ -322,20 +331,22 @@ apiVersion: sources.eventing.knative.dev/v1alpha1
 kind: ContainerSource
 metadata:
   name: heartbeat-event-source
+  namespace: myproject
 spec:
   image: docker.io/matzew/kube-heartbeat
-  args: 
+  args:
    - '--label="<3"'
    - '--period=400'
   sink:
     apiVersion: eventing.knative.dev/v1alpha1
-    kind: Channel
-    name: testchannel
+    kind: Broker
+    name: default
 ```
 
 This is starting to get a little bit more interesting. This EventSource is a so called `ContainerSource`. As such, it runs a container
 based off the image given and instructs it to send its event to the sink described in the YAML. In this case, this container happens
-to be a [_hearbeat_ application](https://github.com/matzew/heartbeat/blob/master/main.go), written in Golang, which generates events at a configurable rate, to be forwarded to the given sink. That sink is the channel that we created before in this case.
+to be a [_hearbeat_ application](https://github.com/matzew/heartbeat/blob/master/main.go), written in Golang, which generates events
+at a configurable rate, to be forwarded to the given sink. That sink is a broker that we'll created shortly.
 
 If we now apply our source YAML, we will see a pod created which is an instance of the source we defined above.
 
@@ -350,37 +361,12 @@ echo "https://$(minishift ip):8443/console/project/myproject/browse/deployments"
 
 ![OpenShift Console's Deployments page showning the created deployment for the source.](images/source.png)
 
-The EventSource is up and running and the final piece of the Knative Eventing is how we wire everything together.
-This is done via a Subscription.
-
-```yaml
-apiVersion: eventing.knative.dev/v1alpha1
-kind: Subscription
-metadata:
-  name: testevents-subscription
-  namespace: myproject
-spec:
-  channel:
-    apiVersion: eventing.knative.dev/v1alpha1
-    kind: Channel
-    name: testchannel
-  subscriber:
-    ref:
-      apiVersion: serving.knative.dev/v1alpha1
-      kind: Service
-      name: dumpy
-```
-
-This Subscription again references the `testchannel` and also defines a `Subscriber`, in this case the Serving application `dumpy` we built earlier.
-This basically means that we have subscribed the previously built application to the `testchannel`.
-Once we apply the `Subscription` any Kubernetes platform events from the `myproject` namespace will be routed to the `dumpy` application.
-Behind the scenes there is a `SubscriptionController` which is doing the wiring for us.
+Finally, we need to enable a knative-eventing-injection for our namespace. This will allow our `broker` to launch as required by our `ContainerSource`
 
 ```bash
-oc apply -f eventing/030-subscription.yaml
+oc label namespace myproject knative-eventing-injection=enabled
 ```
-
-And by that, events coming through our source are now dispatched via a channel to the service that we created in the beginning of this tutorial. We can actually see
+And by that, events coming through our source are now dispatched via a broker to the service that we created in the beginning of this tutorial. We can actually see
 the events by having a look at the logs of our application.
 
 Monitor the pods until at least one enters the running state (use
