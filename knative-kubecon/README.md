@@ -314,10 +314,8 @@ spec:
       name: dumpy
 
 ```
-Here we can see that we've got a channel named `testchannel` and it is an `in-memory-channel` which is what we're going to use for this demo - in production we would probably use Apache Kafka.
-Let's deploy that so that we can use it in a later stage.
 
-+Here we can see that we've got a trigger named `my-service-trigger` and it is a `filter` on events from the `sourceAndType` source which is what we're going to use for this demo.
+Here we can see that we've got a trigger named `my-service-trigger` and it is a `filter` on events from the `sourceAndType` source which is what we're going to use for this demo.
 The trigger will send events through to its `subscriber` which is the dumpy service we defined earlier. Let's deploy that so that we can use it in a later stage.
 
 ```bash
