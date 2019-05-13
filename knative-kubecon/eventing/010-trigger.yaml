@@ -1,13 +1,12 @@
 apiVersion: eventing.knative.dev/v1alpha1
-kind: Subscription
+kind: Trigger
 metadata:
-  name: testevents-subscription
+  name: my-service-trigger
   namespace: myproject
 spec:
-  channel:
-    apiVersion: eventing.knative.dev/v1alpha1
-    kind: Channel
-    name: testchannel
+  filter:
+    sourceAndType:
+      type: dev.knative.source.heartbeats
   subscriber:
     ref:
       apiVersion: serving.knative.dev/v1alpha1
